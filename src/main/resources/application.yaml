@@ -1,0 +1,8 @@
+pring:
+  security:
+      resourceserver:
+        jwt:
+          issuer-uri: https://accounts.google.com
+          jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+#server:
+#  address: 192.168.1.159

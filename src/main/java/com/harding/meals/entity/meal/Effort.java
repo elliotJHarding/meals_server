@@ -1,4 +1,4 @@
-package com.harding.meals.entity;
+package com.harding.meals.entity.meal;
 
 public enum Effort {
     LOW,
