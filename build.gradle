@@ -13,6 +13,7 @@ java {
 
 repositories {
     mavenCentral()
+    google()
 }
 
 dependencies {
@@ -24,9 +25,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-authorization-server'
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-    implementation 'org.projectlombok:lombok:1.18.32'
+    implementation 'com.google.api-client:google-api-client:1.33.0'
+    implementation 'org.springframework.session:spring-session-data-redis'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
-//    implementation 'com.google.api-client:google-api-client'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

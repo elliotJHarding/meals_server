@@ -1,11 +1,12 @@
 package com.harding.meals.controller;
 
 import com.harding.meals.dto.meal.MealDto;
+import com.harding.meals.entity.AppUser;
 import com.harding.meals.entity.meal.Meal;
-import com.harding.meals.mapping.MealMapperImpl;
+import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.repository.MealRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.stream.Collectors;
@@ -14,14 +15,18 @@ import java.util.stream.StreamSupport;
 @RestController
 public class MealController {
 
-    @Autowired
     MealRepository mealRepository;
-    @Autowired
-    MealMapperImpl mapper;
+    MealMapper mapper;
+
+    public MealController(MealRepository mealRepository, MealMapper mapper) {
+        this.mealRepository = mealRepository;
+        this.mapper = mapper;
+    }
 
     @GetMapping("/meals")
-    Iterable<MealDto> all() {
-        return StreamSupport.stream(mealRepository.findAll().spliterator(), false)
+    Iterable<MealDto> all(Authentication authentication) {
+        AppUser user = (AppUser) authentication.getPrincipal();
+        return StreamSupport.stream(mealRepository.findByUser(user).spliterator(), false)
                 .map(meal -> mapper.toDto(meal))
                 .collect(Collectors.toSet());
     }
