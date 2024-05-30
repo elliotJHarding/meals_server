@@ -1,6 +1,6 @@
 package com.harding.meals.repository;
 
-import com.harding.meals.entity.AppUser;
+import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.meal.Meal;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;

@@ -1,6 +1,6 @@
 package com.harding.meals.service;
 
-import com.harding.meals.entity.AppUser;
+import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.repository.AppUserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

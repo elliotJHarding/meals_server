@@ -1,4 +1,4 @@
-package com.harding.meals.entity;
+package com.harding.meals.entity.user;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.persistence.*;
@@ -23,16 +23,6 @@ public class AppUser implements UserDetails {
     public AppUser() {
         this.enabled = true;
     }
-
-    @Embeddable
-    public record PublicDetails(
-            String name,
-            String pictureUrl,
-            String locale,
-            String familyName,
-            String givenName,
-            boolean emailVerified
-    ) {}
 
     public AppUser(GoogleIdToken idToken) {
         GoogleIdToken.Payload payload = idToken.getPayload();

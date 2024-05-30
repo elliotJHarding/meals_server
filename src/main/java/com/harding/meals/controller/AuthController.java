@@ -3,7 +3,7 @@ package com.harding.meals.controller;
 import com.harding.meals.config.security.GoogleJwtAuthenticationToken;
 import com.harding.meals.dto.auth.AppUserDto;
 import com.harding.meals.dto.auth.LoginRequest;
-import com.harding.meals.entity.AppUser;
+import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.mapping.UserMapper;
 import com.harding.meals.service.VerifyGoogleJwtService;
 import jakarta.servlet.http.HttpServletRequest;

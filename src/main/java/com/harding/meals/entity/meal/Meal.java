@@ -1,6 +1,6 @@
 package com.harding.meals.entity.meal;
 
-import com.harding.meals.entity.AppUser;
+import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.meal.ingredient.Ingredient;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;

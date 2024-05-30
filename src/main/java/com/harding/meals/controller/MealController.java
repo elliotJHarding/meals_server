@@ -1,7 +1,7 @@
 package com.harding.meals.controller;
 
 import com.harding.meals.dto.meal.MealDto;
-import com.harding.meals.entity.AppUser;
+import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.repository.MealRepository;
