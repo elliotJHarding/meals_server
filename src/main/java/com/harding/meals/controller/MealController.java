@@ -39,14 +39,14 @@ public class MealController {
 
     @GetMapping("/meals/{id}")
     MealDto findById(@PathVariable Long id, @AuthenticationPrincipal AppUser user) {
-        validateOwnerShip(user, id);
+        validateOwnership(user, id);
         return mapper.toDto(mealRepository.findById(id)
                 .orElseThrow(ResourceNotFoundException::new));
     }
 
     @PutMapping("/meals/{id}")
     void updateById(@RequestBody MealDto newMeal, @PathVariable Long id, @AuthenticationPrincipal AppUser user) {
-        validateOwnerShip(user, id);
+        validateOwnership(user, id);
 
         Meal meal = mapper.toEntity(newMeal);
 
@@ -62,7 +62,7 @@ public class MealController {
         mealRepository.save(meal);
     }
 
-    private void validateOwnerShip(AppUser user, long id) {
+    private void validateOwnership(AppUser user, long id) {
         Meal meal = mealRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("Meal does not exist"));
 
