@@ -5,6 +5,7 @@ import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.repository.MealRepository;
+import com.harding.meals.service.IngredientService;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,10 +19,12 @@ public class MealController {
 
     MealRepository mealRepository;
     MealMapper mapper;
+    IngredientService ingredientService;
 
-    public MealController(MealRepository mealRepository, MealMapper mapper) {
+    public MealController(MealRepository mealRepository, MealMapper mapper, IngredientService ingredientService) {
         this.mealRepository = mealRepository;
         this.mapper = mapper;
+        this.ingredientService = ingredientService;
     }
 
     @GetMapping("/meals")
@@ -33,8 +36,12 @@ public class MealController {
     }
 
     @PostMapping("/meals")
-    MealDto create(@RequestBody MealDto mealDto) {
-        return mapper.toDto(mealRepository.save(mapper.toEntity(mealDto)));
+    MealDto create(@RequestBody MealDto mealDto, @AuthenticationPrincipal AppUser user) {
+        Meal meal = mapper.toEntity(mealDto);
+        meal.setUser(user);
+
+        meal = mealRepository.save(meal);
+        return mapper.toDto(meal);
     }
 
     @GetMapping("/meals/{id}")
@@ -58,6 +65,8 @@ public class MealController {
             parentMeal.setId(meal.getId());
             ingredient.setMeal(parentMeal);
         });
+
+        ingredientService.enrichWithIngredientMetadata(meal);
 
         mealRepository.save(meal);
     }

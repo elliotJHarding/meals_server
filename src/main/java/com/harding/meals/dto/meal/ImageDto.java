@@ -1,6 +1,6 @@
 package com.harding.meals.dto.meal;
 
 public record ImageDto (
-    long id,
+    Long id,
     String url
 ) {}

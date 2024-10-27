@@ -11,4 +11,6 @@ import java.util.List;
 public interface PlanRepository extends PagingAndSortingRepository<Plan, Long>, CrudRepository<Plan, Long> {
 
     List<Plan> findByDateBetweenAndUser(LocalDate startDate, LocalDate endDate, AppUser user);
+
+    void deleteAllByUserAndDate(AppUser user, LocalDate date);
 }

@@ -7,7 +7,7 @@ import com.harding.meals.entity.meal.Effort;
 import java.util.Set;
 
 public record MealDto (
-    long id,
+    Long id,
     String name,
     Effort effort,
     ImageDto image,

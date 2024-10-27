@@ -15,6 +15,8 @@ public class Ingredient {
     @ManyToOne
     private Unit unit;
     private long index;
+    @ManyToOne
+    private IngredientMetadata metadata;
 
     public Ingredient() {
 
@@ -75,5 +77,13 @@ public class Ingredient {
 
     public void setIndex(long index) {
         this.index = index;
+    }
+
+    public IngredientMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(IngredientMetadata metadata) {
+        this.metadata = metadata;
     }
 }

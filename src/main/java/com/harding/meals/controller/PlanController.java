@@ -1,15 +1,13 @@
 package com.harding.meals.controller;
 
-import com.harding.meals.dto.meal.MealDto;
-import com.harding.meals.dto.plan.GetPlansRequest;
 import com.harding.meals.dto.plan.PlanDto;
-import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.plan.Plan;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.mapping.PlanMapper;
 import com.harding.meals.repository.PlanRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -87,6 +85,12 @@ public class PlanController {
         plan.setId(id);
 
         planRepository.save(plan);
+    }
+
+    @DeleteMapping("plans/{date}")
+    @Transactional
+    void deleteByDate(@PathVariable LocalDate date, @AuthenticationPrincipal AppUser user) {
+        planRepository.deleteAllByUserAndDate(user, date);
     }
 
     private void validateOwnership(AppUser user, long id) {

@@ -5,6 +5,7 @@ public record IngredientDto (
     String name,
     double amount,
     UnitDto unit,
-    long index
+    long index,
+    IngredientMetadataDto metadata
 ) {}
 
