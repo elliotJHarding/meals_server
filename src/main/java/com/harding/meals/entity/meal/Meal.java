@@ -36,6 +36,9 @@ public class Meal {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "meal", orphanRemoval = true)
     private Set<Ingredient> ingredients;
 
+    @ManyToMany
+    private Set<MealTag> tags;
+
     public Meal(Long id, String name, Effort effort, Image image, @Nullable String description, @Nullable Integer serves, @Nullable Integer prepTimeMinutes, Set<Ingredient> ingredients) {
         this.id = id;
         this.name = name;
@@ -134,5 +137,13 @@ public class Meal {
 
     public void setIngredients(Set<Ingredient> ingredients) {
         this.ingredients = ingredients;
+    }
+
+    public Set<MealTag> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<MealTag> tags) {
+        this.tags = tags;
     }
 }
