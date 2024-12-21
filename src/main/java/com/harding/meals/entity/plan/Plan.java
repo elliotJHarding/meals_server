@@ -1,14 +1,19 @@
 package com.harding.meals.entity.plan;
 
 import com.harding.meals.entity.meal.Meal;
+import com.harding.meals.entity.shopping.ShoppingListItem;
 import com.harding.meals.entity.user.AppUser;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Objects;
+
+import static java.util.Objects.nonNull;
 
 @Entity
 @Table(
-        uniqueConstraints = {@UniqueConstraint(columnNames = {"user", "date"})}
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "date"})}
 )
 public class Plan {
     @Id
@@ -19,6 +24,8 @@ public class Plan {
     Meal dinner;
     @ManyToOne
     AppUser user;
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.PERSIST)
+    List<ShoppingListItem> shoppingListItems;
 
     public Plan(LocalDate date, Meal dinner, AppUser user) {
         this.date = date;
@@ -66,5 +73,24 @@ public class Plan {
 
     public void setUser(AppUser user) {
         this.user = user;
+    }
+
+    public List<ShoppingListItem> getShoppingListItems() {
+        return shoppingListItems;
+    }
+
+    public void setShoppingListItems(List<ShoppingListItem> shoppingListItems) {
+        this.shoppingListItems = shoppingListItems;
+    }
+
+    public Plan withFilteredShoppingListItems() {
+        if (nonNull(this.shoppingListItems)) {
+            this.shoppingListItems = this.shoppingListItems.stream()
+                    .filter(item ->
+                            nonNull(item.getMeal()) &&
+                            Objects.equals(item.getMeal().getId(), this.dinner.getId()))
+                    .toList();
+        }
+        return this;
     }
 }
