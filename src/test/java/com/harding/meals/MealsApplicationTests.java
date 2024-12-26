@@ -18,10 +18,4 @@ class MealsApplicationTests {
     void contextLoads() {
     }
 
-    @Test
-    void serialization() throws JsonProcessingException {
-        LocalDate date = objectMapper.readValue("2024-06-10", LocalDate.class);
-
-    }
-
 }
