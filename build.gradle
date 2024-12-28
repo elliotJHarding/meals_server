@@ -40,3 +40,14 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+tasks.named("bootBuildImage") {
+    imageName = "162.244.31.253:32000/meals:$version"
+    docker {
+        publishRegistry {
+            url = "162.244.31.253:32000"
+            username = System.getenv("REGISTRY_USER")
+            password = System.getenv("REGISTRY_PASSWORD")
+        }
+    }
+}
