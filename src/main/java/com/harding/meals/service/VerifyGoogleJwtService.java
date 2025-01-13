@@ -16,7 +16,7 @@ public class VerifyGoogleJwtService {
 
     GoogleIdTokenVerifier verifier;
 
-    VerifyGoogleJwtService(@Value("${oauth.google.client.id}") String clientId) {
+    VerifyGoogleJwtService(@Value("${oauth.google-client-id}") String clientId) {
         verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                 .setAudience(List.of(clientId))
                 .build();
