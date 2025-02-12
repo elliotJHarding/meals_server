@@ -8,6 +8,8 @@ import com.harding.meals.mapping.UserMapper;
 import com.harding.meals.service.VerifyGoogleJwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -28,6 +30,7 @@ import static java.util.Objects.isNull;
 @RestController
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
     private SecurityContextRepository securityContextRepository =
             new HttpSessionSecurityContextRepository();
@@ -43,14 +46,16 @@ public class AuthController {
         this.authenticationManager = authenticationManager;
     }
 
-    @GetMapping("auth/whoami")
+    @GetMapping("/auth/whoami")
     AppUserDto whoAmI(Authentication authentication) {
         AppUser user = (AppUser) authentication.getPrincipal();
         return userMapper.toDto(user.getPublicDetails());
     }
 
-    @PostMapping("auth/login")
+    @PostMapping("/auth/login")
     AppUserDto login(@RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) throws GeneralSecurityException, IOException {
+
+        log.debug("Login requested");
 
         if (isNull(loginRequest.getToken())) {
             throw new IllegalArgumentException("No token provided");
@@ -58,15 +63,19 @@ public class AuthController {
 
         GoogleJwtAuthenticationToken token = GoogleJwtAuthenticationToken.unauthenticated(loginRequest.getToken());
 
+        log.debug("Authenticating token with provider");
         Authentication authentication = authenticationManager.authenticate(token);
 
         AppUser principal = (AppUser) authentication.getPrincipal();
 
+        log.debug("Creating security context");
         SecurityContext context = securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authentication);
         securityContextHolderStrategy.setContext(context);
+        log.debug("Saving security context");
         securityContextRepository.saveContext(context, request, response);
 
+        log.debug("Returning user details");
         return userMapper.toDto(principal.getPublicDetails());
     }
 
