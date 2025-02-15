@@ -42,10 +42,10 @@ tasks.named('test') {
 }
 
 tasks.named("bootBuildImage") {
-    imageName = "162.244.31.253:32000/meals:$version"
+    imageName = "grubplanner.co.uk:32000/meals:latest"
     docker {
         publishRegistry {
-            url = "162.244.31.253:32000"
+            url = "grubplanner.co.uk:32000"
             username = System.getenv("REGISTRY_USER")
             password = System.getenv("REGISTRY_PASSWORD")
         }
