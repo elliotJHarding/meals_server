@@ -3,10 +3,7 @@ package com.harding.meals.entity.shopping;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.meal.ingredient.Ingredient;
 import com.harding.meals.entity.plan.Plan;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 @Entity
 public class ShoppingListItem {
@@ -19,7 +16,7 @@ public class ShoppingListItem {
     @ManyToOne
     private Meal meal;
     boolean checked;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     private Plan plan;
 
     public ShoppingListItem(Ingredient ingredient, Meal meal, boolean checked) {
