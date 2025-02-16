@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build_image:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,3 +41,20 @@ jobs:
         REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
         REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
       run: ./gradlew bootBuildImage
+  deploy:
+    needs: build_image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.31.5'
+
+      - name: Configure kubectl
+        run: |
+          echo -n "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+          kubectl config set-context --current --kubeconfig=kubeconfig
+          kubectl config view
+      - name: Restart deployment
+        run: |
+          kubectl rollout restart deployment meals --kubeconfig=kubeconfig
