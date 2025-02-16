@@ -43,6 +43,7 @@ tasks.named('test') {
 
 tasks.named("bootBuildImage") {
     imageName = "grubplanner.co.uk:32000/meals:latest"
+    publish = true
     docker {
         publishRegistry {
             url = "grubplanner.co.uk:32000"
