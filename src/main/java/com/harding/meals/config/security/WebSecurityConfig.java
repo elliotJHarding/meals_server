@@ -29,7 +29,16 @@ public class WebSecurityConfig {
         http
             .cors(withDefaults())
             .authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/auth/login", "/api/auth/login", "/units", "/api/units", "/error", "/api/error")
+                .requestMatchers(
+                        "/auth/login",
+                        "/api/auth/login",
+                        "/units",
+                        "/api/units",
+                        "/error",
+                        "/api/error",
+                        "/actuator/health/**",
+                        "/api/actuator/health/**"
+                )
                 .permitAll()
                 .anyRequest().authenticated()
             ).csrf(AbstractHttpConfigurer::disable)
