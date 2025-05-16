@@ -27,6 +27,8 @@ public class Plan {
     @OneToMany(mappedBy = "plan", cascade = CascadeType.PERSIST)
     List<ShoppingListItem> shoppingListItems;
 
+    String note;
+
     public Plan(LocalDate date, Meal dinner, AppUser user) {
         this.date = date;
         this.dinner = dinner;

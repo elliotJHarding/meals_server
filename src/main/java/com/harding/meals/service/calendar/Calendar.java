@@ -1,6 +1,8 @@
 package com.harding.meals.service.calendar;
 
-public class Calendar {
-    String name;
-    String colour;
-}
+public record Calendar (
+    String id,
+    String name,
+    String colour,
+    boolean active
+) {}

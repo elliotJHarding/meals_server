@@ -10,7 +10,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ public class GoogleAuthenticationProvider implements AuthenticationProvider {
 
             GoogleIdToken.Payload payload = googleIdToken.getPayload();
 
-            UserDetails principal = userDetailsService.loadUserByUsername(payload.getSubject());
+            AppUser principal = userDetailsService.loadUserByUsername(payload.getSubject());
 
             if (principal == null) {
                 AppUser appUser = new AppUser(googleIdToken);

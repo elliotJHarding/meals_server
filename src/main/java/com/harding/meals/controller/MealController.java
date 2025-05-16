@@ -11,8 +11,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
 
 @RestController
 public class MealController {
@@ -30,7 +33,14 @@ public class MealController {
     @GetMapping("/meals")
     Iterable<MealDto> all(Authentication authentication) {
         AppUser user = (AppUser) authentication.getPrincipal();
-        return mealRepository.findByUser(user).stream()
+
+        boolean inFamilyGroup = nonNull(user.getFamilyGroup());
+
+        List<Meal> meals = inFamilyGroup ?
+                mealRepository.findByFamilyGroup(user) :
+                mealRepository.findByUser(user);
+
+        return meals.stream()
                 .map(meal -> mapper.toDto(meal))
                 .collect(Collectors.toSet());
     }

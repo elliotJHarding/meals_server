@@ -28,20 +28,18 @@ public class WebSecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(withDefaults())
+            .logout(logout -> logout.logoutUrl("/auth/logout"))
             .authorizeHttpRequests((authorize) -> authorize
                 .requestMatchers(
                         "/auth/login",
-                        "/api/auth/login",
                         "/units",
-                        "/api/units",
                         "/error",
-                        "/api/error",
-                        "/actuator/health/**",
-                        "/api/actuator/health/**"
+                        "/actuator/health/**"
                 )
                 .permitAll()
                 .anyRequest().authenticated()
-            ).csrf(AbstractHttpConfigurer::disable)
+            )
+            .csrf(AbstractHttpConfigurer::disable)
             .securityContext(securityContext -> securityContext.requireExplicitSave(true));
         return http.build();
     }

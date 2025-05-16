@@ -17,6 +17,8 @@ public class AppUser implements UserDetails {
     @Column(nullable = false)
     private boolean enabled;
     private String email;
+    @ManyToOne
+    private FamilyGroup familyGroup;
 
     private PublicDetails publicDetails;
 
@@ -105,5 +107,13 @@ public class AppUser implements UserDetails {
 
     public void setPublicDetails(PublicDetails publicDetails) {
         this.publicDetails = publicDetails;
+    }
+
+    public FamilyGroup getFamilyGroup() {
+        return familyGroup;
+    }
+
+    public void setFamilyGroup(FamilyGroup familyGroup) {
+        this.familyGroup = familyGroup;
     }
 }

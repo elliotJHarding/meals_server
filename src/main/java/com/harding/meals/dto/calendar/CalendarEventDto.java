@@ -4,5 +4,6 @@ import java.time.LocalDateTime;
 
 public record CalendarEventDto (
     String name,
-    LocalDateTime time
+    LocalDateTime time,
+    String colour
 ) {}
