@@ -7,6 +7,7 @@ public class CalendarEvent {
     private LocalDateTime time;
     private Calendar calendar;
     private String colour;
+    private String textColour;
 
     public String getName() {
         return name;
@@ -22,6 +23,10 @@ public class CalendarEvent {
 
     public String getColour() {
         return colour;
+    }
+
+    public String getTextColour() {
+        return textColour;
     }
 
     public void setName(String name) {
@@ -40,6 +45,10 @@ public class CalendarEvent {
         this.colour = colour;
     }
 
+    public void setTextColour(String textColour) {
+        this.textColour = textColour;
+    }
+
     public CalendarEvent name(String name) {
         this.name = name;
         return this;
@@ -55,9 +64,13 @@ public class CalendarEvent {
         return this;
     }
 
-
     public CalendarEvent calendar(Calendar calendar) {
         this.calendar = calendar;
+        return this;
+    }
+
+    public CalendarEvent textColour(String textColour) {
+        this.textColour = textColour;
         return this;
     }
 }

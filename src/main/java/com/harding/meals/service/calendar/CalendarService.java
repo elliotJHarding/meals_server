@@ -38,6 +38,7 @@ public class CalendarService {
                         calendar.id(),
                         calendar.name(),
                         calendar.colour(),
+                        calendar.textColour(),
                         activeCalendarIds.contains(calendar.id())
                 )
             ).toList();
@@ -46,6 +47,8 @@ public class CalendarService {
     public List<CalendarEvent> findAllEvents(AppUser user, LocalDate from, LocalDate to) throws GeneralSecurityException, IOException {
         List<ActiveCalendar> activeCalendars = activeCalendarRepository.findByUser(user);
         Map<String, String> colourMap = googleCalendarProvider.getCalendars(user).stream()
+                .collect(Collectors.toMap(Calendar::id, Calendar::colour));
+        Map<String, String> textColourMap = googleCalendarProvider.getCalendars(user).stream()
                 .collect(Collectors.toMap(Calendar::id, Calendar::colour));
 
         return activeCalendars.stream()

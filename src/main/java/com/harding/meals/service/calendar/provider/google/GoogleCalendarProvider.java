@@ -136,7 +136,13 @@ public class GoogleCalendarProvider implements CalendarProvider {
         CalendarList calendars = service.calendarList().list().execute();
 
         return calendars.getItems().stream().map(calendar ->
-                new Calendar(calendar.getId(), nonNull(calendar.getSummaryOverride()) ? calendar.getSummaryOverride() : calendar.getSummary(), calendar.getBackgroundColor(), false)
+                new Calendar(
+                        calendar.getId(),
+                        nonNull(calendar.getSummaryOverride()) ? calendar.getSummaryOverride() : calendar.getSummary(),
+                        calendar.getBackgroundColor(),
+                        calendar.getForegroundColor(),
+                        false
+                )
         ).toList();
     }
 
