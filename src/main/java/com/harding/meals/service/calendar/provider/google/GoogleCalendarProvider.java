@@ -24,10 +24,11 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
 
@@ -162,17 +163,41 @@ public class GoogleCalendarProvider implements CalendarProvider {
                     .execute();
             List<Event> items = events.getItems();
 
-            return items.stream().map(googleEvent ->
-                    new CalendarEvent()
-                            .time(Instant.ofEpochMilli(
-                                                    nonNull(googleEvent.getStart().getDateTime()) ? googleEvent.getStart().getDateTime().getValue() :
-                                                            nonNull(googleEvent.getStart().getDate()) ? googleEvent.getStart().getDate().getValue() :
-                                                                    null
-                                            )
-                                            .atZone(ZoneId.systemDefault())
-                                            .toLocalDateTime()
-                            )
-                            .name(googleEvent.getSummary())
+            Predicate<Event> multiDayEvent = event ->
+                    nonNull(event.getStart().getDate()) &&
+                    event.getEnd().getDate().getValue() - event.getStart().getDate().getValue() > 24 * 60 * 60 * 1000;
+
+
+            return Stream.concat(
+                    items.stream().map(googleEvent ->
+                        new CalendarEvent()
+                                .time(Instant.ofEpochMilli(
+                                                        nonNull(googleEvent.getStart().getDateTime()) ? googleEvent.getStart().getDateTime().getValue() :
+                                                                nonNull(googleEvent.getStart().getDate()) ? googleEvent.getStart().getDate().getValue() :
+                                                                        null
+                                                )
+                                                .atZone(ZoneId.systemDefault())
+                                                .toLocalDateTime()
+                                )
+                                .allDay(nonNull(googleEvent.getStart().getDate()))
+                                .name(googleEvent.getSummary())
+                    ),
+                    items.stream()
+                            .filter(multiDayEvent)
+                            .flatMap(event -> {
+                                LocalDate start = LocalDate.ofInstant(Instant.ofEpochMilli(event.getStart().getDate().getValue()), ZoneId.systemDefault());
+                                LocalDate end = LocalDate.ofInstant(Instant.ofEpochMilli(event.getEnd().getDate().getValue()), ZoneId.systemDefault());
+                                int daysBetween = Period.between(start, end).getDays();
+
+                                return IntStream.range(1, daysBetween)
+                                        .mapToObj(start::plusDays)
+                                        .map(date ->
+                                                new CalendarEvent()
+                                                        .time(date.atStartOfDay())
+                                                        .allDay(true)
+                                                        .name(event.getSummary())
+                                        );
+                            })
             ).toList();
         } catch (IOException e) {
             throw new RuntimeException(e);

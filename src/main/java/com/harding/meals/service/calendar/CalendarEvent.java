@@ -8,6 +8,7 @@ public class CalendarEvent {
     private Calendar calendar;
     private String colour;
     private String textColour;
+    private boolean allDay;
 
     public String getName() {
         return name;
@@ -73,4 +74,19 @@ public class CalendarEvent {
         this.textColour = textColour;
         return this;
     }
+
+    public boolean isAllDay() {
+        return allDay;
+    }
+
+    public void setAllDay(boolean allDay) {
+        this.allDay = allDay;
+    }
+
+    public CalendarEvent allDay(boolean allDay) {
+        this.allDay = allDay;
+        return this;
+    }
+
+
 }

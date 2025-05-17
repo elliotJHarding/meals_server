@@ -6,5 +6,6 @@ public record CalendarEventDto (
     String name,
     LocalDateTime time,
     String colour,
-    String textColour
+    String textColour,
+    boolean allDay
 ) {}
