@@ -53,7 +53,7 @@ This is a Spring Boot 3.4.2 REST API server for a meal planning application with
 ### Database Design
 - **Users**: `AppUser` with `FamilyGroup` relationships
 - **Meals**: `Meal` entities with `Recipe`, `Ingredient`, and `MealTag`
-- **Planning**: `Plan` entities linking meals to calendar events
+- **Planning**: `Plan` entities with `PlanMeal` junction table tracking required servings per meal
 - **Shopping**: `ShoppingListItem` generated from plans
 
 ### External Integrations
@@ -68,6 +68,11 @@ This is a Spring Boot 3.4.2 REST API server for a meal planning application with
 - Configured for Kubernetes deployment
 - Environment-based configuration for all external services
 
+### Important Implementation Details
+- **Plan-Meal Relationship**: Plans use `PlanMeal` entity instead of direct many-to-many with meals to track required servings
+- **MapStruct Mappings**: Use `@Mapping(target = "meals", ignore = true)` in PlanMapper to prevent conflicts with deprecated getMeals() method
+- **Mutable Collections**: Entity getter methods return mutable collections (ArrayList) to support MapStruct mapping
+
 ### API Structure
 All endpoints are prefixed with `/api` (configured via `server.servlet.context-path`)
 Main controller endpoints include authentication, meal management, planning, shopping lists, and calendar integration.
@@ -75,4 +80,9 @@ Main controller endpoints include authentication, meal management, planning, sho
 ### Web Client Repository
 This app is a backend server, it can serve client user interfaces.
 The first of these is a web client. It's relative path is @../../WebStormProjects/meals_web_client
-Any change that affects the front end backend interface should consider this repostiory
+Any change that affects the front end backend interface should consider this repository.
+
+**Key Integration Points:**
+- Client expects `planMeals` array in PlanDto with `requiredServings` field
+- Client has `PlanMeal` domain object matching server structure
+- Plan creation/updates require both meal selection and serving quantities
