@@ -84,6 +84,8 @@ public class PlanController {
         Plan plan = planMapper.toEntity(mealPlanDto);
         plan.setUser(user);
 
+        plan.getPlanMeals().forEach(planMeal -> planMeal.setPlan(plan));
+
         ingredientService.populatePlanShoppingList(plan);
 
         return planMapper.toDto(planRepository.save(plan));
@@ -97,17 +99,12 @@ public class PlanController {
         validateOwnership(user, oldPlan);
 
         Plan plan = planMapper.toEntity(newPlan);
+        plan.getPlanMeals().forEach(planMeal -> planMeal.setPlan(plan));
 
         plan.setUser(user);
         plan.setId(id);
 
-        boolean mealChanged =
-                nonNull(oldPlan.getDinner()) && nonNull(plan.getDinner()) &&
-                Objects.equals(oldPlan.getDinner().getId(), plan.getDinner().getId());
-
-        if (mealChanged) {
-            ingredientService.populatePlanShoppingList(plan);
-        }
+        ingredientService.populatePlanShoppingList(plan);
 
         planRepository.save(plan);
     }
@@ -124,7 +121,6 @@ public class PlanController {
                             validateOwnership(user, existingPlan);
                             shoppingListItems.forEach(shoppingListItem -> {
                                 shoppingListItem.setPlan(existingPlan);
-                                shoppingListItem.setMeal(plan.getDinner());
                             });
                             shoppingListItemRepository.saveAll(shoppingListItems);
                         }

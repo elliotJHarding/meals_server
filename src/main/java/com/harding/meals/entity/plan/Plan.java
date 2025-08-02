@@ -6,6 +6,8 @@ import com.harding.meals.entity.user.AppUser;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,37 +22,21 @@ public class Plan {
     @GeneratedValue
     private Long id;
     LocalDate date;
-    @ManyToOne
-    Meal dinner;
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    List<PlanMeal> planMeals;
     @ManyToOne
     AppUser user;
-    @OneToMany(mappedBy = "plan", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.PERSIST, orphanRemoval = true)
     List<ShoppingListItem> shoppingListItems;
-
     String note;
-
-    public Plan(LocalDate date, Meal dinner, AppUser user) {
-        this.date = date;
-        this.dinner = dinner;
-        this.user = user;
-    }
 
     public Plan(LocalDate date, AppUser user) {
         this.date = date;
-        this.dinner = null;
         this.user = user;
+        this.planMeals = Collections.emptyList();
     }
 
     public Plan() {
-
-    }
-
-    public Meal getDinner() {
-        return dinner;
-    }
-
-    public void setDinner(Meal dinner) {
-        this.dinner = dinner;
     }
 
     public LocalDate getDate() {
@@ -87,12 +73,38 @@ public class Plan {
 
     public Plan withFilteredShoppingListItems() {
         if (nonNull(this.shoppingListItems)) {
+            List<Long> mealIds = this.planMeals.stream()
+                    .map(planMeal -> planMeal.getMeal().getId())
+                    .toList();
             this.shoppingListItems = this.shoppingListItems.stream()
                     .filter(item ->
                             nonNull(item.getMeal()) &&
-                            Objects.equals(item.getMeal().getId(), this.dinner.getId()))
+                            mealIds.contains(item.getMeal().getId())
+                    )
                     .toList();
         }
         return this;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public List<PlanMeal> getPlanMeals() {
+        return planMeals;
+    }
+
+    public void setPlanMeals(List<PlanMeal> planMeals) {
+        this.planMeals = planMeals;
+    }
+
+    public List<Meal> getMeals() {
+        return planMeals != null ? 
+            new ArrayList<>(planMeals.stream().map(PlanMeal::getMeal).toList()) : 
+            new ArrayList<>();
     }
 }

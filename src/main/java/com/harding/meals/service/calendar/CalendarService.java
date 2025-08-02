@@ -48,8 +48,6 @@ public class CalendarService {
         List<ActiveCalendar> activeCalendars = activeCalendarRepository.findByUser(user);
         Map<String, String> colourMap = googleCalendarProvider.getCalendars(user).stream()
                 .collect(Collectors.toMap(Calendar::id, Calendar::colour));
-        Map<String, String> textColourMap = googleCalendarProvider.getCalendars(user).stream()
-                .collect(Collectors.toMap(Calendar::id, Calendar::colour));
 
         return activeCalendars.stream()
                 .flatMap(activeCalendar ->

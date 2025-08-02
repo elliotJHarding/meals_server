@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -45,22 +46,23 @@ public class IngredientService {
     public void populatePlanShoppingList(Plan plan) {
         if(nonNull(plan.getId())) {
 
-            Meal meal = mealRepository.findById(plan.getDinner().getId())
-                    .orElseThrow(() -> new IllegalStateException("Meal not found with id: " + plan.getDinner().getId()));
+            List<Meal> meals = plan.getMeals();
 
-            Set<Ingredient> ingredients = meal.getIngredients();
-
-            List<ShoppingListItem> items = ingredients.stream()
+            List<ShoppingListItem> items = meals.stream()
                     .filter(ingredient ->
                             plan.getShoppingListItems().stream()
                                     .noneMatch(item ->
                                             item.getIngredient().getId().equals(ingredient.getId())
                                     )
                     )
-                    .map(ingredient -> new ShoppingListItem(
-                            ingredient,
-                            meal,
-                            isIngredientCheckedByDefault(ingredient)
+                    .flatMap(meal ->
+                            meal.getIngredients().stream()
+                                    .map(ingredient ->
+                                            new ShoppingListItem(
+                                                    ingredient,
+                                                    meal,
+                                                    isIngredientCheckedByDefault(ingredient)
+                                    )
                     ))
                     .toList();
 

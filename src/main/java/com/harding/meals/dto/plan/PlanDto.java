@@ -7,8 +7,15 @@ import java.util.Date;
 import java.util.List;
 
 public record PlanDto (
-    Integer id,
+    Long id,
     Date date,
-    MealDto dinner,
+    List<PlanMealDto> planMeals,
     List<ShoppingListItemDto> shoppingListItems
-) implements DataTransferObject {}
+) implements DataTransferObject {
+    
+    public List<MealDto> getMeals() {
+        return planMeals != null ? 
+            planMeals.stream().map(PlanMealDto::meal).toList() : 
+            List.of();
+    }
+}
