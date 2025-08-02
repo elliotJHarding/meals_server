@@ -3,6 +3,7 @@ package com.harding.meals.service.calendar.provider.google;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.*;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -16,6 +17,7 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.properties.GoogleOauthProperties;
+import com.harding.meals.repository.AccessTokenRepository;
 import com.harding.meals.service.calendar.Calendar;
 import com.harding.meals.service.calendar.CalendarEvent;
 import com.harding.meals.service.calendar.provider.CalendarProvider;
@@ -42,6 +44,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
     );
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private final PersistedDataStoreFactory persistedDataStoreFactory;
+    private final AccessTokenRepository accessTokenRepository;
 
     private GoogleClientSecrets clientSecrets;
 
@@ -51,7 +54,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
 
     GoogleAuthorizationCodeFlow flow;
 
-    public GoogleCalendarProvider(GoogleOauthProperties oauthProperties, PersistedDataStoreFactory persistedDataStoreFactory) throws GeneralSecurityException, IOException {
+    public GoogleCalendarProvider(GoogleOauthProperties oauthProperties, PersistedDataStoreFactory persistedDataStoreFactory, AccessTokenRepository accessTokenRepository) throws GeneralSecurityException, IOException {
         this.oauthProperties = oauthProperties;
         this.httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         this.receiver = new LocalServerReceiver.Builder()
@@ -71,7 +74,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
                 .setDataStoreFactory(persistedDataStoreFactory)
                 .setAccessType("offline")
                 .build();
-
+        this.accessTokenRepository = accessTokenRepository;
     }
 
     private Credential getCredential(AppUser principal) throws IOException {
@@ -81,7 +84,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
         }
 
         if (nonNull(credential) && nonNull(credential.getRefreshToken())) {
-            TokenResponse response = refreshAccessToken(credential.getRefreshToken());
+            TokenResponse response = refreshAccessToken(principal.getEmail(), credential.getRefreshToken());
             response.setRefreshToken(credential.getRefreshToken());
             Credential refreshedCredential = flow.createAndStoreCredential(response, principal.getEmail());
             return refreshedCredential;
@@ -108,8 +111,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
                         .setClientAuthentication(new ClientParametersAuthentication(oauthProperties.getGoogleClientId(), oauthProperties.getGoogleClientSecret()))
                         .setGrantType("authorization_code");
 
-        TokenResponse response = request.execute();
-        return response;
+        return request.execute();
     }
 
     public void authorize(String authorizationCode, AppUser user) throws IOException {
@@ -118,13 +120,19 @@ public class GoogleCalendarProvider implements CalendarProvider {
         flow.createAndStoreCredential(response, user.getEmail());
     }
 
-    public TokenResponse refreshAccessToken(String refreshToken) throws IOException {
+    public TokenResponse refreshAccessToken(String userEmail, String refreshToken) throws IOException {
         GoogleRefreshTokenRequest request = new GoogleRefreshTokenRequest(
                 httpTransport, flow.getJsonFactory(), refreshToken, oauthProperties.getGoogleClientId(), oauthProperties.getGoogleClientSecret()
         );
 
-        TokenResponse response = request.execute();
-        return response;
+        try {
+            return request.execute();
+        } catch (TokenResponseException e) {
+                if ("invalid_grant".equals(e.getDetails().getError())) {
+                    accessTokenRepository.deleteById(userEmail);
+                }
+            throw e;
+        }
     }
 
     @Override
@@ -145,6 +153,7 @@ public class GoogleCalendarProvider implements CalendarProvider {
                         false
                 )
         ).toList();
+
     }
 
     @Override
