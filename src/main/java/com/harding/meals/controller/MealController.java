@@ -6,6 +6,8 @@ import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.repository.MealRepository;
 import com.harding.meals.service.IngredientService;
+import jakarta.persistence.EntityManager;
+import org.hibernate.Session;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,11 +25,13 @@ public class MealController {
     MealRepository mealRepository;
     MealMapper mapper;
     IngredientService ingredientService;
+    EntityManager entityManager;
 
-    public MealController(MealRepository mealRepository, MealMapper mapper, IngredientService ingredientService) {
+    public MealController(MealRepository mealRepository, MealMapper mapper, IngredientService ingredientService, EntityManager entityManager) {
         this.mealRepository = mealRepository;
         this.mapper = mapper;
         this.ingredientService = ingredientService;
+        this.entityManager = entityManager;
     }
 
     @GetMapping("/meals")
@@ -74,6 +78,9 @@ public class MealController {
             Meal parentMeal = new Meal();
             parentMeal.setId(meal.getId());
             ingredient.setMeal(parentMeal);
+//            if (ingredient.getId() == 0) {
+//                ingredient.setId(null);
+//            }
         });
 
         ingredientService.enrichWithIngredientMetadata(meal);

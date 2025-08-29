@@ -1,5 +1,6 @@
 package com.harding.meals.controller;
 
+import com.harding.meals.dto.ai.GenerateMealPlanRequest;
 import com.harding.meals.dto.plan.PlanDto;
 import com.harding.meals.entity.plan.Plan;
 import com.harding.meals.entity.shopping.ShoppingListItem;
@@ -8,12 +9,15 @@ import com.harding.meals.mapping.PlanMapper;
 import com.harding.meals.repository.PlanRepository;
 import com.harding.meals.repository.ShoppingListItemRepository;
 import com.harding.meals.service.IngredientService;
+import com.harding.meals.service.ai.MealPlanGenerationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -29,12 +33,14 @@ public class PlanController {
     private final PlanRepository planRepository;
     private final IngredientService ingredientService;
     private final ShoppingListItemRepository shoppingListItemRepository;
+    private final MealPlanGenerationService mealPlanGenerationService;
 
-    public PlanController(PlanRepository planRepository, PlanMapper planMapper, IngredientService ingredientService, ShoppingListItemRepository shoppingListItemRepository) {
+    public PlanController(PlanRepository planRepository, PlanMapper planMapper, IngredientService ingredientService, ShoppingListItemRepository shoppingListItemRepository, MealPlanGenerationService mealPlanGenerationService) {
         this.planRepository = planRepository;
         this.planMapper = planMapper;
         this.ingredientService = ingredientService;
         this.shoppingListItemRepository = shoppingListItemRepository;
+        this.mealPlanGenerationService = mealPlanGenerationService;
     }
 
     @GetMapping("/plans/{start}/{end}")
@@ -139,6 +145,24 @@ public class PlanController {
                 new IllegalArgumentException("Plan does not exist"));
 
         validateOwnership(user, plan);
+    }
+
+    @PostMapping("/plans/generate")
+    public List<PlanDto> generateMealPlan(@RequestBody GenerateMealPlanRequest request, @AuthenticationPrincipal AppUser user) {
+        try {
+            return mealPlanGenerationService.generateMealPlan(
+                request.weekStartDate(),
+                request.weekEndDate(),
+                request.prompt(),
+                user
+            );
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Calendar service unavailable", e);
+        } catch (GeneralSecurityException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Security error accessing calendar", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate meal plan", e);
+        }
     }
 
     private void validateOwnership(AppUser user, Plan plan) {

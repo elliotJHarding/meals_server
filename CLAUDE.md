@@ -34,6 +34,7 @@ This is a Spring Boot 3.4.2 REST API server for a meal planning application with
 - **Calendar Integration**: Google Calendar API for meal planning events
 - **Family Groups**: Multi-user support with family group management
 - **Meal Planning**: Recipe management with ingredients and shopping list generation
+- **AI Meal Plan Generation**: Automated weekly meal plan creation using external AI service
 - **Shopping Lists**: Automatic generation from meal plans
 
 ### Technology Stack
@@ -60,6 +61,7 @@ This is a Spring Boot 3.4.2 REST API server for a meal planning application with
 - **Google Calendar API**: Full integration for event management
 - **Google OAuth**: Authentication and authorization
 - **Redis**: Session storage and caching
+- **AI Service**: External REST API for automated meal plan generation
 
 ### Development Notes
 - Uses Java 21 with Spring Boot 3.4.2
@@ -75,7 +77,10 @@ This is a Spring Boot 3.4.2 REST API server for a meal planning application with
 
 ### API Structure
 All endpoints are prefixed with `/api` (configured via `server.servlet.context-path`)
-Main controller endpoints include authentication, meal management, planning, shopping lists, and calendar integration.
+Main controller endpoints include authentication, meal management, planning, shopping lists, calendar integration, and AI-powered meal plan generation.
+
+**Key Endpoints:**
+- `POST /api/plans/generate` - Generate weekly meal plans using AI service
 
 ### Web Client Repository
 This app is a backend server, it can serve client user interfaces.
@@ -86,3 +91,11 @@ Any change that affects the front end backend interface should consider this rep
 - Client expects `planMeals` array in PlanDto with `requiredServings` field
 - Client has `PlanMeal` domain object matching server structure
 - Plan creation/updates require both meal selection and serving quantities
+- AI meal plan generation endpoint accepts `GenerateMealPlanRequest` with week date range
+
+### AI Service Configuration
+Required environment variables for AI integration:
+- `AI_SERVICE_BASE_URL` - Base URL of the AI service
+- `AI_SERVICE_API_KEY` - API key for authentication with AI service
+- `AI_SERVICE_MEAL_PLAN_ENDPOINT` - Endpoint path (defaults to `/generate-meal-plan`)
+- `AI_SERVICE_TIMEOUT_SECONDS` - Request timeout (defaults to 30 seconds)

@@ -1,7 +1,7 @@
 package com.harding.meals.dto.meal.ingredient;
 
 public record IngredientDto (
-    long id,
+    Long id,
     String name,
     double amount,
     UnitDto unit,
