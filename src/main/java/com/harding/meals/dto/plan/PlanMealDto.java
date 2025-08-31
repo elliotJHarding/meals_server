@@ -6,5 +6,6 @@ import com.harding.meals.dto.meal.MealDto;
 public record PlanMealDto(
     Long id,
     MealDto meal,
-    Integer requiredServings
+    Integer requiredServings,
+    String note
 ) implements DataTransferObject {}

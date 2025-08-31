@@ -23,6 +23,8 @@ public class PlanMeal {
     @Column(nullable = false)
     private Integer requiredServings;
 
+    private String note;
+
     public PlanMeal() {
     }
 
@@ -62,5 +64,13 @@ public class PlanMeal {
 
     public void setRequiredServings(Integer requiredServings) {
         this.requiredServings = requiredServings;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }
