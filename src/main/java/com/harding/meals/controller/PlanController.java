@@ -6,6 +6,7 @@ import com.harding.meals.entity.plan.Plan;
 import com.harding.meals.entity.shopping.ShoppingListItem;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.mapping.PlanMapper;
+import com.harding.meals.repository.MealRepository;
 import com.harding.meals.repository.PlanRepository;
 import com.harding.meals.repository.ShoppingListItemRepository;
 import com.harding.meals.service.IngredientService;
@@ -34,13 +35,15 @@ public class PlanController {
     private final IngredientService ingredientService;
     private final ShoppingListItemRepository shoppingListItemRepository;
     private final MealPlanGenerationService mealPlanGenerationService;
+    private final MealRepository mealRepository;
 
-    public PlanController(PlanRepository planRepository, PlanMapper planMapper, IngredientService ingredientService, ShoppingListItemRepository shoppingListItemRepository, MealPlanGenerationService mealPlanGenerationService) {
+    public PlanController(PlanRepository planRepository, PlanMapper planMapper, IngredientService ingredientService, ShoppingListItemRepository shoppingListItemRepository, MealPlanGenerationService mealPlanGenerationService, MealRepository mealRepository) {
         this.planRepository = planRepository;
         this.planMapper = planMapper;
         this.ingredientService = ingredientService;
         this.shoppingListItemRepository = shoppingListItemRepository;
         this.mealPlanGenerationService = mealPlanGenerationService;
+        this.mealRepository = mealRepository;
     }
 
     @GetMapping("/plans/{start}/{end}")
@@ -105,7 +108,11 @@ public class PlanController {
         validateOwnership(user, oldPlan);
 
         Plan plan = planMapper.toEntity(newPlan);
-        plan.getPlanMeals().forEach(planMeal -> planMeal.setPlan(plan));
+        plan.getPlanMeals().forEach(planMeal -> {
+            planMeal.setPlan(plan);
+            planMeal.setMeal(mealRepository.findById(planMeal.getMeal().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Meal with id %s does not exist".formatted(planMeal.getMeal().getId()))));
+        });
 
         plan.setUser(user);
         plan.setId(id);

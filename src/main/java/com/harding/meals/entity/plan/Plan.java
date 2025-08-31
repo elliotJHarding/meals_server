@@ -22,7 +22,7 @@ public class Plan {
     @GeneratedValue
     private Long id;
     LocalDate date;
-    @OneToMany(mappedBy = "plan", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     List<PlanMeal> planMeals;
     @ManyToOne
     AppUser user;
