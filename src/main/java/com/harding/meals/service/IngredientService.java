@@ -11,6 +11,7 @@ import com.harding.meals.repository.MealRepository;
 import com.harding.meals.repository.PlanRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -65,6 +66,10 @@ public class IngredientService {
                                     )
                     ))
                     .toList();
+
+            if (plan.getShoppingListItems() == null) {
+                plan.setShoppingListItems(new ArrayList<>());
+            }
 
             plan.getShoppingListItems().addAll(items);
         }

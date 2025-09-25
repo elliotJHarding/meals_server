@@ -9,6 +9,7 @@ import java.util.List;
 public record PlanDto (
     Long id,
     Date date,
+    String note,
     List<PlanMealDto> planMeals,
     List<ShoppingListItemDto> shoppingListItems
 ) implements DataTransferObject {
