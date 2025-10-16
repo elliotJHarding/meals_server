@@ -101,14 +101,14 @@ public class MealPlanGenerationService {
         LocalDate monthAgo = weekStart.minusMonths(1);
         LocalDate dayBeforeWeek = weekStart.minusDays(1);
         
-        return planRepository.findByDateBetweenAndUser(monthAgo, dayBeforeWeek, user)
+        return planRepository.findByFamilyGroupAndDateBetween(monthAgo, dayBeforeWeek, user)
                 .stream()
                 .map(planMapper::toDto)
                 .toList();
     }
 
     private List<PlanDto> gatherExistingPlansForWeek(AppUser user, LocalDate weekStart, LocalDate weekEnd) {
-        return planRepository.findByDateBetweenAndUser(weekStart, weekEnd, user)
+        return planRepository.findByFamilyGroupAndDateBetween(weekStart, weekEnd, user)
                 .stream()
                 .map(planMapper::toDto)
                 .toList();

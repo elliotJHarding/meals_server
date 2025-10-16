@@ -60,7 +60,7 @@ public class PlanController {
             }
         }
 
-        List<Plan> savedPlans = planRepository.findByDateBetweenAndUser(start, end, user);
+        List<Plan> savedPlans = planRepository.findByFamilyGroupAndDateBetween(start, end, user);
 
         List<LocalDate> datesBetween = start
                 .datesUntil(end.plusDays(1))
