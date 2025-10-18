@@ -13,7 +13,13 @@ public interface MealRepository extends PagingAndSortingRepository<Meal, Long>, 
 
     List<Meal> findByUser(AppUser user);
 
-    @Query("from Meal where user.id in (select id from AppUser where familyGroup.uuid = user.familyGroup.uuid)")
+    @Query(
+            """
+            from Meal meal where meal.user.familyGroup in (
+                select u.familyGroup from AppUser u where u = :user
+            )
+            """
+    )
     List<Meal> findByFamilyGroup(AppUser user);
 
     @Query("from Meal where name = :name and user.id in (select id from AppUser where familyGroup.uuid = :#{#user.familyGroup.uuid})")
