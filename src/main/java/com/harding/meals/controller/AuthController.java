@@ -32,7 +32,7 @@ public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
-    private SecurityContextRepository securityContextRepository =
+    private final SecurityContextRepository securityContextRepository =
             new HttpSessionSecurityContextRepository();
 
 
