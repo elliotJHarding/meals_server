@@ -5,8 +5,10 @@ import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.repository.MealRepository;
+import com.harding.meals.repository.PlanMealRepository;
 import com.harding.meals.service.IngredientService;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import org.hibernate.Session;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -22,16 +24,18 @@ import static java.util.Objects.nonNull;
 @RestController
 public class MealController {
 
+    private final PlanMealRepository planMealRepository;
     MealRepository mealRepository;
     MealMapper mapper;
     IngredientService ingredientService;
     EntityManager entityManager;
 
-    public MealController(MealRepository mealRepository, MealMapper mapper, IngredientService ingredientService, EntityManager entityManager) {
+    public MealController(MealRepository mealRepository, MealMapper mapper, IngredientService ingredientService, EntityManager entityManager, PlanMealRepository planMealRepository) {
         this.mealRepository = mealRepository;
         this.mapper = mapper;
         this.ingredientService = ingredientService;
         this.entityManager = entityManager;
+        this.planMealRepository = planMealRepository;
     }
 
     @GetMapping("/meals")
@@ -53,6 +57,10 @@ public class MealController {
     MealDto create(@RequestBody MealDto mealDto, @AuthenticationPrincipal AppUser user) {
         Meal meal = mapper.toEntity(mealDto);
         meal.setUser(user);
+
+        if (meal.getImage() != null) {
+            meal.getImage().setMeal(meal);
+        }
 
         meal = mealRepository.save(meal);
         return mapper.toDto(meal);
@@ -88,13 +96,35 @@ public class MealController {
         mealRepository.save(meal);
     }
 
+    @Transactional
+    @DeleteMapping("/meals/{id}")
+    void deleteById(@PathVariable Long id, @AuthenticationPrincipal AppUser user) {
+        validateOwnership(user, id);
+
+        Meal meal = mealRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Meal does not exist"));
+
+        planMealRepository.deleteByMeal(meal);
+
+        mealRepository.deleteById(id);
+    }
+
     private void validateOwnership(AppUser user, long id) {
         Meal meal = mealRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("Meal does not exist"));
 
-        if (!Objects.equals(meal.getUser().getId(), user.getId())) {
-            throw new IllegalArgumentException("User does not own this meal");
+        boolean userOwnsMeal = !Objects.equals(meal.getUser().getId(), user.getId());
+
+        boolean userInFamilyGroupOwnsMeal =
+                user.getFamilyGroup() != null &&
+                user.getFamilyGroup().getUuid().equals(
+                        meal.getUser().getFamilyGroup().getUuid()
+                );
+
+        if (userOwnsMeal || userInFamilyGroupOwnsMeal) {
+            return;
         }
 
+        throw new IllegalArgumentException("User does not own this meal");
     }
 }

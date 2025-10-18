@@ -46,7 +46,20 @@ public class CalendarService {
 
     public List<CalendarEvent> findAllEvents(AppUser user, LocalDate from, LocalDate to) throws GeneralSecurityException, IOException {
         List<ActiveCalendar> activeCalendars = activeCalendarRepository.findByUser(user);
-        Map<String, String> colourMap = googleCalendarProvider.getCalendars(user).stream()
+
+        List<Calendar> calendars = googleCalendarProvider.getCalendars(user);
+
+        List<String> calendarIds = calendars.stream()
+                .map(Calendar::id)
+                .toList();
+
+        activeCalendarRepository.deleteAll(
+                activeCalendars.stream()
+                        .filter(activeCalendar -> !calendarIds.contains(activeCalendar.getCalendarId()))
+                        .toList()
+        );
+
+        Map<String, String> colourMap = calendars.stream()
                 .collect(Collectors.toMap(Calendar::id, Calendar::colour));
 
         return activeCalendars.stream()

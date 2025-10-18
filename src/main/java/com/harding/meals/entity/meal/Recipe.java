@@ -14,14 +14,11 @@ public class Recipe {
 
     private String url;
     private String title;
-    @ManyToOne
-    private Image image;
 
-    public Recipe(Long id, String url, String title, Image image) {
+    public Recipe(Long id, String url, String title) {
         this.id = id;
         this.url = url;
         this.title = title;
-        this.image = image;
     }
 
     public Recipe() {
@@ -52,11 +49,4 @@ public class Recipe {
         this.title = title;
     }
 
-    public Image getImage() {
-        return image;
-    }
-
-    public void setImage(Image image) {
-        this.image = image;
-    }
 }

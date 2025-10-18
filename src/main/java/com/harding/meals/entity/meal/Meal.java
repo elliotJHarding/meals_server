@@ -4,6 +4,7 @@ import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.meal.ingredient.Ingredient;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import org.checkerframework.checker.units.qual.N;
 
 import java.util.Set;
 
@@ -18,8 +19,9 @@ public class Meal {
     private Effort effort;
     @ManyToOne
     private AppUser user;
+
+    @Nullable
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn
     private Image image;
 
     @Nullable
