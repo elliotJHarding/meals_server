@@ -15,6 +15,7 @@ public class FamilyResourceService {
 
         boolean userInFamilyGroupOwnsMeal =
                 user.getFamilyGroup() != null &&
+                resource.getUser().getFamilyGroup() != null &&
                         user.getFamilyGroup().getUuid().equals(
                                 resource.getUser().getFamilyGroup().getUuid()
                         );
