@@ -7,5 +7,6 @@ public record PlanMealDto(
     Long id,
     MealDto meal,
     Integer requiredServings,
-    String note
+    String note,
+    boolean leftovers
 ) implements DataTransferObject {}

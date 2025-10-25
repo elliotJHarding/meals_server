@@ -2,6 +2,7 @@ package com.harding.meals.entity.plan;
 
 import com.harding.meals.entity.meal.Meal;
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(
@@ -19,6 +20,9 @@ public class PlanMeal {
     @ManyToOne
     @JoinColumn(name = "meal_id", nullable = false)
     private Meal meal;
+
+    @ColumnDefault("false")
+    private boolean leftovers;
 
     @Column(nullable = false)
     private Integer requiredServings;
@@ -72,5 +76,13 @@ public class PlanMeal {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public boolean isLeftovers() {
+        return leftovers;
+    }
+
+    public void setLeftovers(boolean leftovers) {
+        this.leftovers = leftovers;
     }
 }

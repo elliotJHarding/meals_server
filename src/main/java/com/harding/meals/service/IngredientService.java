@@ -22,14 +22,10 @@ import static java.util.Objects.nonNull;
 @Service
 public class IngredientService {
 
-    private final MealRepository mealRepository;
-    private final PlanRepository planRepository;
     IngredientMetadataRepository ingredientMetadataRepository;
 
     public IngredientService(IngredientMetadataRepository ingredientMetadataRepository, MealRepository mealRepository, PlanRepository planRepository) {
         this.ingredientMetadataRepository = ingredientMetadataRepository;
-        this.mealRepository = mealRepository;
-        this.planRepository = planRepository;
     }
 
     public IngredientMetadata matchMetadata(Ingredient ingredient) {
@@ -58,6 +54,7 @@ public class IngredientService {
 
         // Create shopping list items for all ingredients not already in the list
         List<ShoppingListItem> items = meals.stream()
+                .filter(meal -> meal.getIngredients() != null)
                 .flatMap(meal ->
                         meal.getIngredients().stream()
                                 .map(ingredient -> {
@@ -66,7 +63,7 @@ public class IngredientService {
                                                 meal,
                                                 isIngredientCheckedByDefault(ingredient)
                                         );
-                                        item.setPlan(plan);  // Fix Bug 2: Set plan association
+                                        item.setPlan(plan);
                                         return item;
                                 })
                 )
