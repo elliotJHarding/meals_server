@@ -9,6 +9,7 @@ import com.harding.meals.mapping.PlanMapper;
 import com.harding.meals.repository.MealRepository;
 import com.harding.meals.repository.PlanRepository;
 import com.harding.meals.repository.ShoppingListItemRepository;
+import com.harding.meals.service.FamilyResourceService;
 import com.harding.meals.service.IngredientService;
 import com.harding.meals.service.ai.MealPlanGenerationService;
 import org.springframework.http.HttpStatus;
@@ -36,14 +37,16 @@ public class PlanController {
     private final ShoppingListItemRepository shoppingListItemRepository;
     private final MealPlanGenerationService mealPlanGenerationService;
     private final MealRepository mealRepository;
+    private final FamilyResourceService familyResourceService;
 
-    public PlanController(PlanRepository planRepository, PlanMapper planMapper, IngredientService ingredientService, ShoppingListItemRepository shoppingListItemRepository, MealPlanGenerationService mealPlanGenerationService, MealRepository mealRepository) {
+    public PlanController(PlanRepository planRepository, PlanMapper planMapper, IngredientService ingredientService, ShoppingListItemRepository shoppingListItemRepository, MealPlanGenerationService mealPlanGenerationService, MealRepository mealRepository, FamilyResourceService familyResourceService) {
         this.planRepository = planRepository;
         this.planMapper = planMapper;
         this.ingredientService = ingredientService;
         this.shoppingListItemRepository = shoppingListItemRepository;
         this.mealPlanGenerationService = mealPlanGenerationService;
         this.mealRepository = mealRepository;
+        this.familyResourceService = familyResourceService;
     }
 
     @GetMapping("/plans/{start}/{end}")
@@ -105,7 +108,7 @@ public class PlanController {
         Plan oldPlan = planRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("Plan does not exist"));
 
-        validateOwnership(user, oldPlan);
+        familyResourceService.validateOwnership(user, oldPlan);
 
         Plan plan = planMapper.toEntity(newPlan);
         plan.getPlanMeals().forEach(planMeal -> {
@@ -131,7 +134,7 @@ public class PlanController {
                     if (nonNull(shoppingListItems)) {
                         Plan existingPlan = planRepository.findById(plan.getId()).orElse(null);
                         if (nonNull(existingPlan)) {
-                            validateOwnership(user, existingPlan);
+                            familyResourceService.validateOwnership(user, existingPlan);
                             shoppingListItems.forEach(shoppingListItem -> {
                                 shoppingListItem.setPlan(existingPlan);
                             });
@@ -145,13 +148,6 @@ public class PlanController {
     @Transactional
     void deleteByDate(@PathVariable LocalDate date, @AuthenticationPrincipal AppUser user) {
         planRepository.deleteAllByUserAndDate(user, date);
-    }
-
-    private void validateOwnership(AppUser user, long id) {
-        Plan plan = planRepository.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("Plan does not exist"));
-
-        validateOwnership(user, plan);
     }
 
     @PostMapping("/plans/generate")
@@ -169,12 +165,6 @@ public class PlanController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Security error accessing calendar", e);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate meal plan", e);
-        }
-    }
-
-    private void validateOwnership(AppUser user, Plan plan) {
-        if (!Objects.equals(plan.getUser().getId(), user.getId())) {
-            throw new IllegalArgumentException("User does not own this plan");
         }
     }
 

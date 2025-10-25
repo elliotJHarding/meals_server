@@ -1,5 +1,6 @@
 package com.harding.meals.entity.plan;
 
+import com.harding.meals.entity.FamilyGroupResource;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.shopping.ShoppingListItem;
 import com.harding.meals.entity.user.AppUser;
@@ -17,7 +18,7 @@ import static java.util.Objects.nonNull;
 @Table(
         uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "date"})}
 )
-public class Plan {
+public class Plan implements FamilyGroupResource {
     @Id
     @GeneratedValue
     private Long id;
@@ -72,7 +73,7 @@ public class Plan {
     }
 
     public Plan withFilteredShoppingListItems() {
-        if (nonNull(this.shoppingListItems)) {
+        if (nonNull(this.shoppingListItems) && nonNull(this.planMeals)) {  // Fix Bug 4: NPE protection
             List<Long> mealIds = this.planMeals.stream()
                     .map(planMeal -> planMeal.getMeal().getId())
                     .toList();

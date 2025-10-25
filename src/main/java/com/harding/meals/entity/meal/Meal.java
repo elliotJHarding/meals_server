@@ -1,5 +1,6 @@
 package com.harding.meals.entity.meal;
 
+import com.harding.meals.entity.FamilyGroupResource;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.meal.ingredient.Ingredient;
 import jakarta.annotation.Nullable;
@@ -9,7 +10,7 @@ import org.checkerframework.checker.units.qual.N;
 import java.util.Set;
 
 @Entity
-public class Meal {
+public class Meal implements FamilyGroupResource {
 
     @Id
     @GeneratedValue

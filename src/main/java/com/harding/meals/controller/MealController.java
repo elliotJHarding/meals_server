@@ -6,6 +6,7 @@ import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.repository.MealRepository;
 import com.harding.meals.repository.PlanMealRepository;
+import com.harding.meals.service.FamilyResourceService;
 import com.harding.meals.service.IngredientService;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -25,17 +26,19 @@ import static java.util.Objects.nonNull;
 public class MealController {
 
     private final PlanMealRepository planMealRepository;
+    private final FamilyResourceService familyResourceService;
     MealRepository mealRepository;
     MealMapper mapper;
     IngredientService ingredientService;
     EntityManager entityManager;
 
-    public MealController(MealRepository mealRepository, MealMapper mapper, IngredientService ingredientService, EntityManager entityManager, PlanMealRepository planMealRepository) {
+    public MealController(MealRepository mealRepository, MealMapper mapper, IngredientService ingredientService, EntityManager entityManager, PlanMealRepository planMealRepository, FamilyResourceService familyResourceService) {
         this.mealRepository = mealRepository;
         this.mapper = mapper;
         this.ingredientService = ingredientService;
         this.entityManager = entityManager;
         this.planMealRepository = planMealRepository;
+        this.familyResourceService = familyResourceService;
     }
 
     @GetMapping("/meals")
@@ -113,18 +116,7 @@ public class MealController {
         Meal meal = mealRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("Meal does not exist"));
 
-        boolean userOwnsMeal = !Objects.equals(meal.getUser().getId(), user.getId());
-
-        boolean userInFamilyGroupOwnsMeal =
-                user.getFamilyGroup() != null &&
-                user.getFamilyGroup().getUuid().equals(
-                        meal.getUser().getFamilyGroup().getUuid()
-                );
-
-        if (userOwnsMeal || userInFamilyGroupOwnsMeal) {
-            return;
-        }
-
-        throw new IllegalArgumentException("User does not own this meal");
+        familyResourceService.validateOwnership(user, meal);
     }
+
 }

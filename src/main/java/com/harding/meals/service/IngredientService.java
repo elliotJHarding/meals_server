@@ -45,34 +45,38 @@ public class IngredientService {
     }
 
     public void populatePlanShoppingList(Plan plan) {
-        if(nonNull(plan.getId())) {
-
-            List<Meal> meals = plan.getMeals();
-
-            List<ShoppingListItem> items = meals.stream()
-                    .filter(ingredient ->
-                            plan.getShoppingListItems().stream()
-                                    .noneMatch(item ->
-                                            item.getIngredient().getId().equals(ingredient.getId())
-                                    )
-                    )
-                    .flatMap(meal ->
-                            meal.getIngredients().stream()
-                                    .map(ingredient ->
-                                            new ShoppingListItem(
-                                                    ingredient,
-                                                    meal,
-                                                    isIngredientCheckedByDefault(ingredient)
-                                    )
-                    ))
-                    .toList();
-
-            if (plan.getShoppingListItems() == null) {
-                plan.setShoppingListItems(new ArrayList<>());
-            }
-
-            plan.getShoppingListItems().addAll(items);
+        if(isNull(plan)) {
+            return;
         }
+
+        List<Meal> meals = plan.getMeals();
+
+        // Skip if plan has no meals
+        if(meals == null || meals.isEmpty()) {
+            return;
+        }
+
+        // Create shopping list items for all ingredients not already in the list
+        List<ShoppingListItem> items = meals.stream()
+                .flatMap(meal ->
+                        meal.getIngredients().stream()
+                                .map(ingredient -> {
+                                        ShoppingListItem item = new ShoppingListItem(
+                                                ingredient,
+                                                meal,
+                                                isIngredientCheckedByDefault(ingredient)
+                                        );
+                                        item.setPlan(plan);  // Fix Bug 2: Set plan association
+                                        return item;
+                                })
+                )
+                .toList();
+
+        if (plan.getShoppingListItems() == null) {
+            plan.setShoppingListItems(new ArrayList<>());
+        }
+
+        plan.getShoppingListItems().addAll(items);
     }
 
     private boolean isIngredientCheckedByDefault(Ingredient ingredient) {

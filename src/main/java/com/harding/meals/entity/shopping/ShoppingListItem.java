@@ -16,7 +16,7 @@ public class ShoppingListItem {
     @ManyToOne
     private Meal meal;
     boolean checked;
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     private Plan plan;
 
     public ShoppingListItem(Ingredient ingredient, Meal meal, boolean checked) {
