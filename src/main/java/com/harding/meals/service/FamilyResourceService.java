@@ -11,7 +11,7 @@ public class FamilyResourceService {
 
     public void validateOwnership(AppUser user, FamilyGroupResource resource) {
 
-        boolean userOwnsMeal = !Objects.equals(resource.getUser().getId(), user.getId());
+        boolean userOwnsMeal = Objects.equals(resource.getUser().getId(), user.getId());
 
         boolean userInFamilyGroupOwnsMeal =
                 user.getFamilyGroup() != null &&
