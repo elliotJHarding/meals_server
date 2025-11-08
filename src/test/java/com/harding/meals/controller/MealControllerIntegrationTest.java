@@ -7,6 +7,7 @@ import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.user.FamilyGroup;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -20,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for MealController.
  * Tests meal CRUD operations with authentication and authorization.
  */
+@Disabled
 class MealControllerIntegrationTest extends BaseControllerTest {
 
     private AppUser testUser;

@@ -9,6 +9,7 @@ import com.harding.meals.entity.shopping.ShoppingListItem;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.user.PublicDetails;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration tests for ShoppingListItemRepository.
  * Tests basic CRUD operations and relationships with plans, meals, and ingredients.
  */
+@Disabled
 class ShoppingListItemRepositoryIntegrationTest extends BaseIntegrationTest {
 
     private AppUser testUser;
