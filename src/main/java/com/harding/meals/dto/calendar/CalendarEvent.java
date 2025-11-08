@@ -1,4 +1,4 @@
-package com.harding.meals.service.calendar;
+package com.harding.meals.dto.calendar;
 
 import java.time.LocalDateTime;
 

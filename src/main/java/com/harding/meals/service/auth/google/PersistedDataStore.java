@@ -1,10 +1,10 @@
-package com.harding.meals.service.calendar.provider.google;
+package com.harding.meals.service.auth.google;
 
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.DataStoreFactory;
 import com.harding.meals.entity.user.AppUser;
-import com.harding.meals.entity.user.GoogleOauthToken;
+import com.harding.meals.entity.user.token.GoogleOauthToken;
 import com.harding.meals.repository.AccessTokenRepository;
 import com.harding.meals.repository.AppUserRepository;
 

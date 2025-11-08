@@ -4,6 +4,9 @@ import com.harding.meals.entity.user.AppUser;
 import jakarta.persistence.*;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_meal_tag_user", columnList = "user_id")
+})
 public class MealTag {
     @Id
     @GeneratedValue

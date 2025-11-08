@@ -1,4 +1,4 @@
-package com.harding.meals.service.calendar;
+package com.harding.meals.dto.calendar;
 
 public record Calendar (
     String id,

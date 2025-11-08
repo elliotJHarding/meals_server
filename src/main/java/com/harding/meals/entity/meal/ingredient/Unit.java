@@ -1,10 +1,11 @@
 package com.harding.meals.entity.meal.ingredient;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_unit_code", columnList = "code")
+})
 public class Unit {
 
     @Id

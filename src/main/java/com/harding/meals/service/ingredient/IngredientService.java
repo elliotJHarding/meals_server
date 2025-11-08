@@ -1,10 +1,11 @@
-package com.harding.meals.service;
+package com.harding.meals.service.ingredient;
 
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.meal.ingredient.Ingredient;
 import com.harding.meals.entity.meal.ingredient.IngredientMetadata;
 import com.harding.meals.entity.meal.ingredient.Longevity;
 import com.harding.meals.entity.plan.Plan;
+import com.harding.meals.entity.plan.PlanMeal;
 import com.harding.meals.entity.shopping.ShoppingListItem;
 import com.harding.meals.repository.IngredientMetadataRepository;
 import com.harding.meals.repository.MealRepository;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.BiFunction;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -45,23 +46,33 @@ public class IngredientService {
             return;
         }
 
-        List<Meal> meals = plan.getMeals();
+        List<PlanMeal> planMeals = plan.getPlanMeals();
 
         // Skip if plan has no meals
-        if(meals == null || meals.isEmpty()) {
+        if(planMeals == null || planMeals.isEmpty()) {
             return;
         }
 
+        BiFunction<Ingredient, PlanMeal, Double> calculateAmount = (ingredient, planMeal) -> {
+            int serves = nonNull(planMeal.getMeal()) &&
+                    nonNull(planMeal.getMeal().getServes())?
+                    planMeal.getMeal().getServes() : 3;
+            return (ingredient.getAmount() / serves) * planMeal.getRequiredServings();
+        };
+
+        plan.getShoppingListItems().clear();
+
         // Create shopping list items for all ingredients not already in the list
-        List<ShoppingListItem> items = meals.stream()
-                .filter(meal -> meal.getIngredients() != null)
-                .flatMap(meal ->
-                        meal.getIngredients().stream()
+        List<ShoppingListItem> items = planMeals.stream()
+                .filter(planMeal -> planMeal.getMeal().getIngredients() != null)
+                .flatMap(planMeal ->
+                        planMeal.getMeal().getIngredients().stream()
                                 .map(ingredient -> {
                                         ShoppingListItem item = new ShoppingListItem(
                                                 ingredient,
-                                                meal,
-                                                isIngredientCheckedByDefault(ingredient)
+                                                planMeal.getMeal(),
+                                                isIngredientCheckedByDefault(ingredient),
+                                                calculateAmount.apply(ingredient, planMeal)
                                         );
                                         item.setPlan(plan);
                                         return item;

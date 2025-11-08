@@ -1,6 +1,7 @@
-package com.harding.meals.entity.user;
+package com.harding.meals.entity.user.token;
 
 import com.google.api.client.auth.oauth2.StoredCredential;
+import com.harding.meals.entity.user.AppUser;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnTransformer;
 
@@ -8,9 +9,12 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_google_oauth_token_user", columnList = "user_id"),
+        @Index(name = "idx_google_oauth_token_expires", columnList = "expires")
+})
 public class GoogleOauthToken implements Serializable {
     @Id
     private String id;

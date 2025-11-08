@@ -1,6 +1,5 @@
 package com.harding.meals.controller;
 
-import com.harding.meals.dto.ai.GenerateMealPlanRequest;
 import com.harding.meals.dto.plan.PlanDto;
 import com.harding.meals.entity.plan.Plan;
 import com.harding.meals.entity.shopping.ShoppingListItem;
@@ -9,8 +8,8 @@ import com.harding.meals.mapping.PlanMapper;
 import com.harding.meals.repository.MealRepository;
 import com.harding.meals.repository.PlanRepository;
 import com.harding.meals.repository.ShoppingListItemRepository;
-import com.harding.meals.service.FamilyResourceService;
-import com.harding.meals.service.IngredientService;
+import com.harding.meals.service.auth.FamilyResourceService;
+import com.harding.meals.service.ingredient.IngredientService;
 import com.harding.meals.service.ai.MealPlanGenerationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +21,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -148,24 +146,6 @@ public class PlanController {
     @Transactional
     void deleteByDate(@PathVariable LocalDate date, @AuthenticationPrincipal AppUser user) {
         planRepository.deleteAllByUserAndDate(user, date);
-    }
-
-    @PostMapping("/plans/generate")
-    public List<PlanDto> generateMealPlan(@RequestBody GenerateMealPlanRequest request, @AuthenticationPrincipal AppUser user) {
-        try {
-            return mealPlanGenerationService.generateMealPlan(
-                request.weekStartDate(),
-                request.weekEndDate(),
-                request.prompt(),
-                user
-            );
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Calendar service unavailable", e);
-        } catch (GeneralSecurityException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Security error accessing calendar", e);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate meal plan", e);
-        }
     }
 
 }

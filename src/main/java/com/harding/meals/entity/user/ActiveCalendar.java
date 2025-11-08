@@ -1,11 +1,13 @@
 package com.harding.meals.entity.user;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
+
+
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_active_calendar_user", columnList = "user_id")
+})
 public class ActiveCalendar {
     @Id
     @GeneratedValue

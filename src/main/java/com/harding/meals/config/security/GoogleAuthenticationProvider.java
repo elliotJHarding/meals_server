@@ -2,8 +2,8 @@ package com.harding.meals.config.security;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.harding.meals.entity.user.AppUser;
-import com.harding.meals.service.AppUserDetailsService;
-import com.harding.meals.service.VerifyGoogleJwtService;
+import com.harding.meals.service.auth.AppUserDetailsService;
+import com.harding.meals.service.auth.google.VerifyGoogleJwtService;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;

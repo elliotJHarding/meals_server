@@ -5,7 +5,7 @@ import com.harding.meals.dto.auth.AppUserDto;
 import com.harding.meals.dto.auth.LoginRequest;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.mapping.UserMapper;
-import com.harding.meals.service.VerifyGoogleJwtService;
+import com.harding.meals.service.auth.google.VerifyGoogleJwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;

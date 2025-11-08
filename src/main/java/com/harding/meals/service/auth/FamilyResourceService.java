@@ -1,4 +1,4 @@
-package com.harding.meals.service;
+package com.harding.meals.service.auth;
 
 import com.harding.meals.entity.FamilyGroupResource;
 import com.harding.meals.entity.user.AppUser;

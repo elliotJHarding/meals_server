@@ -6,18 +6,16 @@ import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.repository.MealRepository;
 import com.harding.meals.repository.PlanMealRepository;
-import com.harding.meals.service.FamilyResourceService;
-import com.harding.meals.service.IngredientService;
+import com.harding.meals.service.auth.FamilyResourceService;
+import com.harding.meals.service.ingredient.IngredientService;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import org.hibernate.Session;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;

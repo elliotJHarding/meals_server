@@ -6,7 +6,10 @@ import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(
-        uniqueConstraints = {@UniqueConstraint(columnNames = {"plan_id", "meal_id"})}
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"plan_id", "meal_id"})},
+        indexes = {
+                @Index(name = "idx_plan_meal_meal", columnList = "meal_id")
+        }
 )
 public class PlanMeal {
     @Id

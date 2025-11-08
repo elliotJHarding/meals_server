@@ -16,7 +16,10 @@ import static java.util.Objects.nonNull;
 
 @Entity
 @Table(
-        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "date"})}
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "date"})},
+        indexes = {
+                @Index(name = "idx_plan_date_user", columnList = "date, user_id")
+        }
 )
 public class Plan implements FamilyGroupResource {
     @Id

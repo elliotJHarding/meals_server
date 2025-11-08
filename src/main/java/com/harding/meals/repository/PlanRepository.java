@@ -15,7 +15,7 @@ public interface PlanRepository extends PagingAndSortingRepository<Plan, Long>, 
 
     @Query(
             """
-            from Plan plan where plan.user = :user or 
+            from Plan plan where plan.user = :user or
                 plan.user.familyGroup in (
                     select u.familyGroup from AppUser u where u = :user
                 )

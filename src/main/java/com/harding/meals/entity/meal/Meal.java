@@ -10,6 +10,10 @@ import org.checkerframework.checker.units.qual.N;
 import java.util.Set;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_meal_user", columnList = "user_id"),
+        @Index(name = "idx_meal_name_user", columnList = "name, user_id")
+})
 public class Meal implements FamilyGroupResource {
 
     @Id

@@ -6,6 +6,10 @@ import com.harding.meals.entity.plan.Plan;
 import jakarta.persistence.*;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_shopping_list_item_plan_meal", columnList = "plan_id, meal_id"),
+        @Index(name = "idx_shopping_list_item_plan", columnList = "plan_id")
+})
 public class ShoppingListItem {
 
     @Id
@@ -18,11 +22,13 @@ public class ShoppingListItem {
     boolean checked;
     @ManyToOne
     private Plan plan;
+    private Double amount;
 
-    public ShoppingListItem(Ingredient ingredient, Meal meal, boolean checked) {
+    public ShoppingListItem(Ingredient ingredient, Meal meal, boolean checked, Double amount) {
         this.ingredient = ingredient;
         this.meal = meal;
         this.checked = checked;
+        this.amount = amount;
     }
 
     public ShoppingListItem() {
@@ -67,5 +73,13 @@ public class ShoppingListItem {
 
     public void setPlan(Plan plan) {
         this.plan = plan;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 }

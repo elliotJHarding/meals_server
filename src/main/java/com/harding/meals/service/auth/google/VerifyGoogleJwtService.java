@@ -1,4 +1,4 @@
-package com.harding.meals.service;
+package com.harding.meals.service.auth.google;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;

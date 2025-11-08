@@ -1,4 +1,4 @@
-package com.harding.meals.service.calendar.provider.google;
+package com.harding.meals.service.auth.google;
 
 import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.DataStoreFactory;

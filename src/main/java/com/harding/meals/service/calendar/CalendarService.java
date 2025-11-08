@@ -1,13 +1,13 @@
 package com.harding.meals.service.calendar;
 
-import com.google.api.client.auth.oauth2.StoredCredential;
-import com.google.api.client.auth.oauth2.TokenResponse;
+import com.harding.meals.dto.calendar.Calendar;
+import com.harding.meals.dto.calendar.CalendarEvent;
 import com.harding.meals.entity.user.ActiveCalendar;
-import com.harding.meals.entity.user.GoogleOauthToken;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.repository.AccessTokenRepository;
 import com.harding.meals.repository.ActiveCalendarRepository;
-import com.harding.meals.service.calendar.provider.google.GoogleCalendarProvider;
+import com.harding.meals.service.auth.google.GoogleAuthService;
+import com.harding.meals.service.calendar.google.GoogleCalendarProvider;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,11 +23,13 @@ public class CalendarService {
     private final GoogleCalendarProvider googleCalendarProvider;
     private final AccessTokenRepository accessTokenRepository;
     private final ActiveCalendarRepository activeCalendarRepository;
+    private final GoogleAuthService googleAuthService;
 
-    public CalendarService(GoogleCalendarProvider googleCalendarProvider, AccessTokenRepository accessTokenRepository, ActiveCalendarRepository activeCalendarRepository) {
+    public CalendarService(GoogleCalendarProvider googleCalendarProvider, AccessTokenRepository accessTokenRepository, ActiveCalendarRepository activeCalendarRepository, GoogleAuthService googleAuthService) {
         this.googleCalendarProvider = googleCalendarProvider;
         this.accessTokenRepository = accessTokenRepository;
         this.activeCalendarRepository = activeCalendarRepository;
+        this.googleAuthService = googleAuthService;
     }
 
     public List<Calendar> findAllCalendars(AppUser user) throws IOException {
@@ -73,11 +75,11 @@ public class CalendarService {
     }
 
     public String getAuthorizationUrl(AppUser user) throws IOException {
-        return googleCalendarProvider.getAuthorizationUrl(user);
+        return googleAuthService.getAuthorizationUrl(user);
     }
 
     public void linkCalendar(String authCode, AppUser user) throws IOException {
-        googleCalendarProvider.authorize(authCode, user);
+        googleAuthService.authorize(authCode, user);
     }
 
     public boolean isAuthorized(AppUser user) {

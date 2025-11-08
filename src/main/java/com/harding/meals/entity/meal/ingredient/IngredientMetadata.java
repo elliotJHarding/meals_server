@@ -3,6 +3,9 @@ package com.harding.meals.entity.meal.ingredient;
 import jakarta.persistence.*;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_ingredient_metadata_name", columnList = "name")
+})
 public class IngredientMetadata {
 
     @Id

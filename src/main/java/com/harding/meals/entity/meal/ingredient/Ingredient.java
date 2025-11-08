@@ -4,6 +4,10 @@ import com.harding.meals.entity.meal.Meal;
 import jakarta.persistence.*;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_ingredient_meal", columnList = "meal_id"),
+        @Index(name = "idx_ingredient_metadata", columnList = "metadata_id")
+})
 public class Ingredient {
     @Id
     @GeneratedValue

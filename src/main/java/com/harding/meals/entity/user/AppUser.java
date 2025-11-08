@@ -8,17 +8,29 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_app_user_email", columnList = "email"),
+        @Index(name = "idx_app_user_family_group", columnList = "family_group_uuid")
+})
 public class AppUser implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(unique = true, nullable = false)
     private String username;
+
     @Column(nullable = false)
     private boolean enabled;
+
     private String email;
+
     @ManyToOne
     private FamilyGroup familyGroup;
+
+    @OneToOne(mappedBy = "user")
+    private ChatContext chatContext;
 
     private PublicDetails publicDetails;
 
@@ -115,5 +127,13 @@ public class AppUser implements UserDetails {
 
     public void setFamilyGroup(FamilyGroup familyGroup) {
         this.familyGroup = familyGroup;
+    }
+
+    public ChatContext getChatContext() {
+        return chatContext;
+    }
+
+    public void setChatContext(ChatContext chatContext) {
+        this.chatContext = chatContext;
     }
 }

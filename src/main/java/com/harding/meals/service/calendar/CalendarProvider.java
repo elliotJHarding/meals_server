@@ -1,8 +1,8 @@
-package com.harding.meals.service.calendar.provider;
+package com.harding.meals.service.calendar;
 
+import com.harding.meals.dto.calendar.Calendar;
+import com.harding.meals.dto.calendar.CalendarEvent;
 import com.harding.meals.entity.user.AppUser;
-import com.harding.meals.service.calendar.Calendar;
-import com.harding.meals.service.calendar.CalendarEvent;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -10,8 +10,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface CalendarProvider {
-
-    String getAuthorizationUrl(AppUser principal) throws IOException;
 
     List<Calendar> getCalendars(AppUser principal) throws GeneralSecurityException, IOException;
 
