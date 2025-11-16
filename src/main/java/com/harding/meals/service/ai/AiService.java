@@ -2,6 +2,7 @@ package com.harding.meals.service.ai;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.harding.meals.dto.ai.*;
+import com.harding.meals.dto.meal.MealDto;
 import com.harding.meals.entity.meal.Effort;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.meal.Recipe;
@@ -9,13 +10,19 @@ import com.harding.meals.entity.meal.ingredient.Ingredient;
 import com.harding.meals.entity.meal.ingredient.IngredientMetadata;
 import com.harding.meals.entity.meal.ingredient.Longevity;
 import com.harding.meals.entity.user.AppUser;
+import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.properties.AiServiceProperties;
+import com.harding.meals.repository.MealRepository;
 import com.harding.meals.service.auth.google.GoogleAuthService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class AiService {
@@ -23,10 +30,14 @@ public class AiService {
     private final RestClient restClient;
     private final AiServiceProperties aiServiceProperties;
     private final GoogleAuthService googleAuthService;
+    private final MealRepository mealRepository;
+    private final MealMapper mealMapper;
 
-    public AiService(AiServiceProperties aiServiceProperties, RestClient.Builder restClientBuilder, GoogleAuthService googleAuthService) {
+    public AiService(AiServiceProperties aiServiceProperties, RestClient.Builder restClientBuilder, GoogleAuthService googleAuthService, MealRepository mealRepository, MealMapper mealMapper) {
         this.aiServiceProperties = aiServiceProperties;
         this.googleAuthService = googleAuthService;
+        this.mealRepository = mealRepository;
+        this.mealMapper = mealMapper;
         this.restClient = restClientBuilder
                 .baseUrl(aiServiceProperties.getBaseUrl())
                 .build();
@@ -197,12 +208,51 @@ public class AiService {
                 throw new RuntimeException("Failed to generate meal plan chat: empty response");
             }
 
-            return response;
+            // Enrich the suggested meals with full meal details
+            List<SuggestedMealDto> enrichedSuggestions = enrichSuggestedMeals(response.suggestions());
+
+            // Return the response with enriched suggestions
+            return new DayMealPlanChatResponse(
+                    enrichedSuggestions,
+                    response.reasoning(),
+                    response.conversationComplete(),
+                    response.updatedChatContext()
+            );
         } catch (IOException e) {
             throw new RuntimeException("Failed to get OAuth token for user", e);
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate meal plan chat", e);
         }
+    }
+
+    private List<SuggestedMealDto> enrichSuggestedMeals(List<SuggestedMealDto> suggestions) {
+        if (suggestions == null || suggestions.isEmpty()) {
+            return suggestions;
+        }
+
+        // Fetch all meal IDs and get them from the repository
+        List<Long> mealIds = suggestions.stream()
+                .map(SuggestedMealDto::mealId)
+                .toList();
+
+        // Fetch all meals in a single query
+        Iterable<Meal> meals = mealRepository.findAllById(mealIds);
+        Map<Long, MealDto> mealDtoMap = StreamSupport.stream(meals.spliterator(), false)
+                .collect(Collectors.toMap(
+                        Meal::getId,
+                        mealMapper::toDto
+                ));
+
+        // Enrich each suggestion with the full meal details
+        return suggestions.stream()
+                .map(suggestion -> new SuggestedMealDto(
+                        suggestion.mealName(),
+                        suggestion.mealId(),
+                        suggestion.rank(),
+                        suggestion.suitabilityScore(),
+                        mealDtoMap.get(suggestion.mealId())
+                ))
+                .toList();
     }
 
 }

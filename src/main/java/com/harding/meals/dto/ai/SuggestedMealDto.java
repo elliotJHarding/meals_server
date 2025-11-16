@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.harding.meals.dto.meal.MealDto;
 
 public record SuggestedMealDto(
-        MealDto meal,
+        String mealName,
+        long mealId,
         int rank,
         @JsonProperty("suitability_score")
-        Double suitabilityScore
+        Double suitabilityScore,
+        MealDto meal
 ) {
 }

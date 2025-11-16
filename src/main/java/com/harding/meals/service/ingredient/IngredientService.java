@@ -60,7 +60,9 @@ public class IngredientService {
             return (ingredient.getAmount() / serves) * planMeal.getRequiredServings();
         };
 
-        plan.getShoppingListItems().clear();
+        if (plan.getShoppingListItems() != null && !plan.getShoppingListItems().isEmpty()) {
+            plan.getShoppingListItems().clear();
+        }
 
         // Create shopping list items for all ingredients not already in the list
         List<ShoppingListItem> items = planMeals.stream()
