@@ -1,6 +1,6 @@
 package com.harding.meals.mapping;
 
-import com.harding.meals.dto.meal.ingredient.UnitDto;
+import com.harding.meals.dto.UnitDto;
 import com.harding.meals.entity.meal.ingredient.Unit;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

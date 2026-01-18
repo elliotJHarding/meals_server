@@ -8,15 +8,30 @@ group = 'com.harding'
 version = '0.1.2-SNAPSHOT'
 
 java {
-    sourceCompatibility = '21'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     google()
+
+    // GitHub Packages for meals-contract
+    maven {
+        url = uri("https://maven.pkg.github.com/elliotJHarding/meals_model")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
+    // Internal Dependencies
+    implementation 'com.harding.meals:meals-api:1.0.1'
+
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -24,6 +39,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-authorization-server'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
     implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all:3.2.0'
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     implementation 'com.google.api-client:google-api-client:1.33.0'
@@ -35,6 +52,7 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'com.h2database:h2'
+
 
     // Testing dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

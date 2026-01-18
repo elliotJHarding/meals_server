@@ -9,7 +9,6 @@ import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.user.FamilyGroup;
 import com.harding.meals.entity.user.PublicDetails;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -24,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration tests for PlanRepository.
  * Tests complex query methods and plan relationships.
  */
-@Disabled
 class PlanRepositoryIntegrationTest extends BaseIntegrationTest {
 
     private AppUser user1;
@@ -154,7 +152,9 @@ class PlanRepositoryIntegrationTest extends BaseIntegrationTest {
         List<Plan> results = planRepository.findByFamilyGroupAndDateBetween(start, end, userWithoutFamily);
 
         // Then
-        assertTrue(results.isEmpty(), "User without family group should have empty results");
+        // User without family group should still see their own plans
+        assertEquals(1, results.size(), "User without family group should see their own plan");
+        assertEquals(LocalDate.of(2025, 1, 2), results.get(0).getDate());
     }
 
     @Test
@@ -177,9 +177,8 @@ class PlanRepositoryIntegrationTest extends BaseIntegrationTest {
                 .stream(planRepository.findAll().spliterator(), false)
                 .toList();
         assertEquals(2, remainingPlans.size());
-        assertFalse(remainingPlans.stream().anyMatch(p ->
-                p.getUser().getId().equals(user1.getId()) && p.getDate().equals(dateToDelete)
-        ));
+        assertFalse(remainingPlans.stream()
+                .anyMatch(p -> p.getUser().getId().equals(user1.getId()) && p.getDate().equals(dateToDelete)));
     }
 
     @Test

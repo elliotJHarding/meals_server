@@ -1,7 +1,7 @@
 package com.harding.meals.controller;
 
-import com.harding.meals.dto.ai.DayMealPlanChatRequest;
-import com.harding.meals.dto.ai.DayMealPlanChatResponse;
+import com.harding.meals.dto.DayMealPlanChatRequest;
+import com.harding.meals.dto.DayMealPlanChatResponse;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.meal.ingredient.Ingredient;
 import com.harding.meals.entity.meal.ingredient.IngredientMetadata;

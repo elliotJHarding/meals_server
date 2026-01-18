@@ -1,7 +1,7 @@
 package com.harding.meals.controller;
 
-import com.harding.meals.dto.auth.AppUserDto;
-import com.harding.meals.dto.auth.FamilyGroupDto;
+import com.harding.meals.dto.AppUserDto;
+import com.harding.meals.dto.FamilyGroupDto;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.user.FamilyGroup;
 import com.harding.meals.mapping.UserMapper;
@@ -40,13 +40,13 @@ public class FamilyGroupController {
 
         AppUser appUser = appUserRepository.findByUsername(user.getUsername());
 
-        return new FamilyGroupDto(
-                nonNull(appUser.getFamilyGroup()) ? appUser.getFamilyGroup().getUuid() : null,
-                appUserRepository.findAllByFamilyGroup(appUser.getFamilyGroup()).stream()
+        return new FamilyGroupDto()
+                .uuid(nonNull(appUser.getFamilyGroup()) ? appUser.getFamilyGroup().getUuid() : null)
+                .users(appUserRepository.findAllByFamilyGroup(appUser.getFamilyGroup()).stream()
                         .filter(u -> !u.getUsername().equals(appUser.getUsername()))
                         .map(u -> userMapper.toDto(u.getPublicDetails()))
                         .toList()
-        );
+                );
     }
 
     @PostMapping("/familyGroup")

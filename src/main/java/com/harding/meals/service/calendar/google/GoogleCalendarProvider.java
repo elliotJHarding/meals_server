@@ -8,8 +8,8 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.service.auth.google.GoogleAuthService;
-import com.harding.meals.dto.calendar.Calendar;
-import com.harding.meals.dto.calendar.CalendarEvent;
+import com.harding.meals.dto.Calendar;
+import com.harding.meals.dto.CalendarEventDto;
 import com.harding.meals.service.calendar.CalendarProvider;
 import org.springframework.stereotype.Component;
 
@@ -38,19 +38,18 @@ public class GoogleCalendarProvider implements CalendarProvider {
         CalendarList calendars = service.calendarList().list().execute();
 
         return calendars.getItems().stream().map(calendar ->
-                new Calendar(
-                        calendar.getId(),
-                        nonNull(calendar.getSummaryOverride()) ? calendar.getSummaryOverride() : calendar.getSummary(),
-                        calendar.getBackgroundColor(),
-                        calendar.getForegroundColor(),
-                        false
-                )
+                new Calendar()
+                        .id(calendar.getId())
+                        .name(nonNull(calendar.getSummaryOverride()) ? calendar.getSummaryOverride() : calendar.getSummary())
+                        .colour(calendar.getBackgroundColor())
+                        .textColour(calendar.getForegroundColor())
+                        .active(false)
         ).toList();
 
     }
 
     @Override
-    public List<CalendarEvent> getEvents(AppUser principal, String calendarId, LocalDate from, LocalDate to) {
+    public List<CalendarEventDto> getEvents(AppUser principal, String calendarId, LocalDate from, LocalDate to) {
         try {
             com.google.api.services.calendar.Calendar service = googleAuthService.getCalendarService(principal);
 
@@ -69,14 +68,14 @@ public class GoogleCalendarProvider implements CalendarProvider {
 
             return Stream.concat(
                     items.stream().map(googleEvent ->
-                        new CalendarEvent()
+                        new CalendarEventDto()
                                 .time(Instant.ofEpochMilli(
                                                         nonNull(googleEvent.getStart().getDateTime()) ? googleEvent.getStart().getDateTime().getValue() :
                                                                 nonNull(googleEvent.getStart().getDate()) ? googleEvent.getStart().getDate().getValue() :
                                                                         null
                                                 )
                                                 .atZone(ZoneId.systemDefault())
-                                                .toLocalDateTime()
+                                                .toOffsetDateTime()
                                 )
                                 .allDay(nonNull(googleEvent.getStart().getDate()))
                                 .name(googleEvent.getSummary())
@@ -91,8 +90,8 @@ public class GoogleCalendarProvider implements CalendarProvider {
                                 return IntStream.range(1, daysBetween)
                                         .mapToObj(start::plusDays)
                                         .map(date ->
-                                                new CalendarEvent()
-                                                        .time(date.atStartOfDay())
+                                                new CalendarEventDto()
+                                                        .time(date.atStartOfDay().atOffset(ZoneOffset.UTC))
                                                         .allDay(true)
                                                         .name(event.getSummary())
                                         );

@@ -1,8 +1,7 @@
 package com.harding.meals.service.ai;
 
 import com.google.api.client.auth.oauth2.Credential;
-import com.harding.meals.dto.ai.*;
-import com.harding.meals.dto.meal.MealDto;
+import com.harding.meals.dto.*;
 import com.harding.meals.entity.meal.Effort;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.meal.Recipe;
@@ -10,36 +9,41 @@ import com.harding.meals.entity.meal.ingredient.Ingredient;
 import com.harding.meals.entity.meal.ingredient.IngredientMetadata;
 import com.harding.meals.entity.meal.ingredient.Longevity;
 import com.harding.meals.entity.user.AppUser;
-import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.properties.AiServiceProperties;
-import com.harding.meals.repository.MealRepository;
 import com.harding.meals.service.auth.google.GoogleAuthService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 
 @Service
 public class AiService {
 
+    private static final Logger log = LoggerFactory.getLogger(AiService.class);
+
     private final RestClient restClient;
     private final AiServiceProperties aiServiceProperties;
     private final GoogleAuthService googleAuthService;
-    private final MealRepository mealRepository;
-    private final MealMapper mealMapper;
 
-    public AiService(AiServiceProperties aiServiceProperties, RestClient.Builder restClientBuilder, GoogleAuthService googleAuthService, MealRepository mealRepository, MealMapper mealMapper) {
+    public AiService(AiServiceProperties aiServiceProperties, RestClient.Builder restClientBuilder, GoogleAuthService googleAuthService) {
         this.aiServiceProperties = aiServiceProperties;
         this.googleAuthService = googleAuthService;
-        this.mealRepository = mealRepository;
-        this.mealMapper = mealMapper;
+
+        // Use HTTP/1.1 to avoid issues with HTTP/2 upgrade and chunked encoding
+        HttpClient httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+
         this.restClient = restClientBuilder
                 .baseUrl(aiServiceProperties.getBaseUrl())
+                .requestFactory(requestFactory)
                 .build();
     }
 
@@ -69,11 +73,11 @@ public class AiService {
             }
 
             Ingredient ingredient = new Ingredient();
-            ingredient.setName(response.name());
+            ingredient.setName(response.getName());
 
-            if (response.amount() != null) {
+            if (response.getAmount() != null) {
                 try {
-                    ingredient.setAmount(Double.parseDouble(response.amount()));
+                    ingredient.setAmount(Double.parseDouble(response.getAmount()));
                 } catch (NumberFormatException e) {
                     // If amount is not a simple number (e.g., "1-2"), store as 0
                     ingredient.setAmount(0.0);
@@ -109,13 +113,12 @@ public class AiService {
             }
 
             IngredientMetadata metadata = new IngredientMetadata();
-            metadata.setName(response.ingredientName());
+            metadata.setName(response.getIngredientName());
 
             // Map storage type to Longevity enum
-            Longevity longevity = switch (response.storageType()) {
+            Longevity longevity = switch (response.getStorageType()) {
                 case CUPBOARD -> Longevity.CUPBOARD;
                 case FRESH -> Longevity.FRESH;
-                case FREEZER -> Longevity.FREEZER;
             };
             metadata.setLongevity(longevity);
 
@@ -145,32 +148,33 @@ public class AiService {
             }
 
             Meal meal = new Meal();
-            meal.setName(response.title() != null ? response.title() : "Untitled Recipe");
-            meal.setDescription(response.description());
-            meal.setPrepTimeMinutes(response.totalTimeMinutes());
-            meal.setEffort(response.effort() != null ? response.effort() : Effort.MEDIUM);
+            meal.setName(response.getTitle() != null ? response.getTitle() : "Untitled Recipe");
+            meal.setDescription(response.getDescription());
+            meal.setPrepTimeMinutes(response.getTotalTimeMinutes());
+            meal.setEffort(response.getEffort() != null ?
+                Effort.valueOf(response.getEffort().name()) : Effort.MEDIUM);
             meal.setUser(user);
 
             // Create and set recipe
             Recipe recipe = new Recipe();
-            recipe.setUrl(response.url());
-            recipe.setTitle(response.title());
+            recipe.setUrl(response.getUrl() != null ? response.getUrl().toString() : null);
+            recipe.setTitle(response.getTitle());
             meal.setRecipe(recipe);
 
             // Parse ingredients
-            if (response.ingredients() != null && !response.ingredients().isEmpty()) {
+            if (response.getIngredients() != null && !response.getIngredients().isEmpty()) {
                 HashSet<Ingredient> ingredients = new HashSet<>();
                 int index = 0;
 
-                for (ParsedIngredientDto parsedIngredient : response.ingredients()) {
+                for (ParsedIngredient parsedIngredient : response.getIngredients()) {
                     Ingredient ingredient = new Ingredient();
-                    ingredient.setName(parsedIngredient.name());
+                    ingredient.setName(parsedIngredient.getName());
                     ingredient.setIndex(index++);
                     ingredient.setMeal(meal);
 
-                    if (parsedIngredient.amount() != null) {
+                    if (parsedIngredient.getAmount() != null) {
                         try {
-                            ingredient.setAmount(Double.parseDouble(parsedIngredient.amount()));
+                            ingredient.setAmount(Double.parseDouble(parsedIngredient.getAmount()));
                         } catch (NumberFormatException e) {
                             ingredient.setAmount(0.0);
                         }
@@ -195,6 +199,7 @@ public class AiService {
 
     public DayMealPlanChatResponse planMealChat(AppUser user, DayMealPlanChatRequest request) {
         try {
+            log.info("Sending meal plan chat request for user: {}", user.getEmail());
             String accessToken = getAccessToken(user);
 
             DayMealPlanChatResponse response = restClient.post()
@@ -208,51 +213,17 @@ public class AiService {
                 throw new RuntimeException("Failed to generate meal plan chat: empty response");
             }
 
-            // Enrich the suggested meals with full meal details
-            List<SuggestedMealDto> enrichedSuggestions = enrichSuggestedMeals(response.suggestions());
+            log.info("Received response with {} suggestions", response.getSuggestions().size());
 
-            // Return the response with enriched suggestions
-            return new DayMealPlanChatResponse(
-                    enrichedSuggestions,
-                    response.reasoning(),
-                    response.conversationComplete(),
-                    response.updatedChatContext()
-            );
+            // Return the response directly - frontend will lookup full meal details by ID
+            return response;
         } catch (IOException e) {
+            log.error("Failed to get OAuth token for user: {}", user.getEmail(), e);
             throw new RuntimeException("Failed to get OAuth token for user", e);
         } catch (Exception e) {
+            log.error("Error in planMealChat: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to generate meal plan chat", e);
         }
-    }
-
-    private List<SuggestedMealDto> enrichSuggestedMeals(List<SuggestedMealDto> suggestions) {
-        if (suggestions == null || suggestions.isEmpty()) {
-            return suggestions;
-        }
-
-        // Fetch all meal IDs and get them from the repository
-        List<Long> mealIds = suggestions.stream()
-                .map(SuggestedMealDto::mealId)
-                .toList();
-
-        // Fetch all meals in a single query
-        Iterable<Meal> meals = mealRepository.findAllById(mealIds);
-        Map<Long, MealDto> mealDtoMap = StreamSupport.stream(meals.spliterator(), false)
-                .collect(Collectors.toMap(
-                        Meal::getId,
-                        mealMapper::toDto
-                ));
-
-        // Enrich each suggestion with the full meal details
-        return suggestions.stream()
-                .map(suggestion -> new SuggestedMealDto(
-                        suggestion.mealName(),
-                        suggestion.mealId(),
-                        suggestion.rank(),
-                        suggestion.suitabilityScore(),
-                        mealDtoMap.get(suggestion.mealId())
-                ))
-                .toList();
     }
 
 }

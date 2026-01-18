@@ -8,9 +8,11 @@ import com.harding.meals.entity.plan.Plan;
 import com.harding.meals.entity.shopping.ShoppingListItem;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.entity.user.PublicDetails;
+import jakarta.persistence.EntityManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,10 +24,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration tests for ShoppingListItemRepository.
- * Tests basic CRUD operations and relationships with plans, meals, and ingredients.
+ * Tests basic CRUD operations and relationships with plans, meals, and
+ * ingredients.
  */
 @Disabled
 class ShoppingListItemRepositoryIntegrationTest extends BaseIntegrationTest {
+
+    @Autowired
+    private EntityManager entityManager;
 
     private AppUser testUser;
     private Plan testPlan;
@@ -46,12 +52,17 @@ class ShoppingListItemRepositoryIntegrationTest extends BaseIntegrationTest {
         testMeal.setIngredients(new HashSet<>());
         testMeal = mealRepository.save(testMeal);
 
-        // Create ingredient
+        // Create ingredient and add to meal
         testIngredient = new Ingredient();
         testIngredient.setName("Tomatoes");
         testIngredient.setAmount(2.0);
         testIngredient.setMeal(testMeal);
         testIngredient.setIndex(0);
+        testMeal.getIngredients().add(testIngredient);
+        testMeal = mealRepository.save(testMeal); // Save again to persist the ingredient
+
+        // Force flush to database to ensure ingredient is persisted
+        entityManager.flush();
 
         // Create plan
         testPlan = new Plan();

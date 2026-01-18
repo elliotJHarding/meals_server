@@ -3,6 +3,9 @@ package com.harding.meals.config;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.meal.ingredient.Ingredient;
 import com.harding.meals.entity.meal.ingredient.Unit;
+import org.springframework.boot.actuate.web.exchanges.HttpExchangeRepository;
+import org.springframework.boot.actuate.web.exchanges.InMemoryHttpExchangeRepository;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
 import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
@@ -18,5 +21,10 @@ public class RestConfiguration implements RepositoryRestConfigurer {
                 Ingredient.class,
                 Unit.class
         );
+    }
+
+    @Bean
+    HttpExchangeRepository httpExchangeRepository() {
+        return new InMemoryHttpExchangeRepository();
     }
 }

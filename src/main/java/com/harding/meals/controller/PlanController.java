@@ -1,6 +1,6 @@
 package com.harding.meals.controller;
 
-import com.harding.meals.dto.plan.PlanDto;
+import com.harding.meals.dto.PlanDto;
 import com.harding.meals.entity.plan.Plan;
 import com.harding.meals.entity.shopping.ShoppingListItem;
 import com.harding.meals.entity.user.AppUser;

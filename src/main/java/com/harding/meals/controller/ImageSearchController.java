@@ -1,6 +1,6 @@
 package com.harding.meals.controller;
 
-import com.harding.meals.dto.image.ImageSearchResponse;
+import com.harding.meals.dto.ImageSearchResponse;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.service.image.ImageSearchService;
 import org.springframework.http.HttpStatus;

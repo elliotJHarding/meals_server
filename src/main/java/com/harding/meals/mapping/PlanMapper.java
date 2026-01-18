@@ -1,6 +1,6 @@
 package com.harding.meals.mapping;
 
-import com.harding.meals.dto.plan.PlanDto;
+import com.harding.meals.dto.PlanDto;
 import com.harding.meals.entity.plan.Plan;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,6 +13,7 @@ public interface PlanMapper {
     PlanDto toDto(Plan plan);
 
     @Mapping(target = "meals", ignore = true)
+    @Mapping(target = "user", ignore = true)
     Plan toEntity(PlanDto dto);
 }
 

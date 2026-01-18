@@ -1,9 +1,9 @@
 package com.harding.meals.controller;
 
-import com.harding.meals.dto.calendar.CalendarEventDto;
+import com.harding.meals.dto.CalendarEventDto;
 import com.harding.meals.entity.user.AppUser;
-import com.harding.meals.mapping.CalendarEventMapper;
-import com.harding.meals.dto.calendar.Calendar;
+
+import com.harding.meals.dto.Calendar;
 import com.harding.meals.service.calendar.CalendarService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +17,9 @@ import java.util.List;
 public class CalendarController {
 
     private final CalendarService calendarService;
-    private final CalendarEventMapper calendarEventMapper;
 
-    public CalendarController(CalendarService calendarService, CalendarEventMapper calendarEventMapper) {
+    public CalendarController(CalendarService calendarService) {
         this.calendarService = calendarService;
-        this.calendarEventMapper = calendarEventMapper;
     }
 
     @GetMapping("calendar/authorize")
@@ -37,7 +35,6 @@ public class CalendarController {
     @GetMapping("calendar/events/{start}/{end}")
     public List<CalendarEventDto> getEvents(@PathVariable LocalDate start, @PathVariable LocalDate end, @AuthenticationPrincipal AppUser user) throws GeneralSecurityException, IOException {
         return calendarService.findAllEvents(user, start, end).stream()
-                .map(calendarEventMapper::toDto)
                 .toList();
     }
 

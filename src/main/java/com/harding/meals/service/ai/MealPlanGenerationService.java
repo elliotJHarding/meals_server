@@ -1,11 +1,11 @@
 package com.harding.meals.service.ai;
 
-import com.harding.meals.dto.calendar.CalendarEventDto;
-import com.harding.meals.dto.meal.MealDto;
-import com.harding.meals.dto.plan.PlanDto;
+import com.harding.meals.dto.CalendarEventDto;
+import com.harding.meals.dto.MealDto;
+import com.harding.meals.dto.PlanDto;
 import com.harding.meals.entity.plan.Plan;
 import com.harding.meals.entity.user.AppUser;
-import com.harding.meals.mapping.CalendarEventMapper;
+
 import com.harding.meals.mapping.MealMapper;
 import com.harding.meals.mapping.PlanMapper;
 import com.harding.meals.repository.MealRepository;
@@ -33,7 +33,7 @@ public class MealPlanGenerationService {
     private final IngredientService ingredientService;
     private final MealMapper mealMapper;
     private final PlanMapper planMapper;
-    private final CalendarEventMapper calendarEventMapper;
+
 
     public MealPlanGenerationService(
             AiService aiServiceClient,
@@ -42,8 +42,7 @@ public class MealPlanGenerationService {
             CalendarService calendarService,
             IngredientService ingredientService,
             MealMapper mealMapper,
-            PlanMapper planMapper,
-            CalendarEventMapper calendarEventMapper) {
+            PlanMapper planMapper) {
         this.aiServiceClient = aiServiceClient;
         this.mealRepository = mealRepository;
         this.planRepository = planRepository;
@@ -51,7 +50,6 @@ public class MealPlanGenerationService {
         this.ingredientService = ingredientService;
         this.mealMapper = mealMapper;
         this.planMapper = planMapper;
-        this.calendarEventMapper = calendarEventMapper;
     }
 
     private List<MealDto> gatherAvailableMeals(AppUser user) {
@@ -82,22 +80,19 @@ public class MealPlanGenerationService {
             throws IOException, GeneralSecurityException {
         return calendarService.findAllEvents(user, startDate, endDate)
                 .stream()
-                .map(calendarEventMapper::toDto)
+                
                 .toList();
     }
 
     private List<PlanDto> saveGeneratedPlans(List<PlanDto> generatedPlans, AppUser user, List<PlanDto> existingPlansForWeek) {
         // Get dates that already have plans to avoid overwriting
         List<LocalDate> existingPlanDates = existingPlansForWeek.stream()
-                .map(planDto -> planDto.date().toInstant().atZone(ZoneOffset.UTC).toLocalDate())
+                .map(PlanDto::getDate)
                 .toList();
         
         // Filter generated plans to only include dates without existing plans
         List<PlanDto> newPlansToSave = generatedPlans.stream()
-                .filter(planDto -> {
-                    LocalDate planDate = planDto.date().toInstant().atZone(ZoneOffset.UTC).toLocalDate();
-                    return !existingPlanDates.contains(planDate);
-                })
+                .filter(planDto -> !existingPlanDates.contains(planDto.getDate()))
                 .toList();
         
         List<PlanDto> savedPlans = newPlansToSave.stream()

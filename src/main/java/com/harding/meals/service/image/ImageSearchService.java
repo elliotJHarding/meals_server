@@ -1,9 +1,10 @@
 package com.harding.meals.service.image;
 
-import com.harding.meals.dto.image.ImageSearchResponse;
+import com.harding.meals.dto.ImageSearchResponse;
 import com.harding.meals.dto.image.PexelsSearchResponse;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ public class ImageSearchService {
                 .map(photo -> photo.src().large())
                 .collect(Collectors.toList());
 
-        return new ImageSearchResponse(imageUrls);
+        return new ImageSearchResponse()
+                .imageUrls(imageUrls);
     }
 }

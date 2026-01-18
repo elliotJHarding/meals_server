@@ -1,7 +1,7 @@
 package com.harding.meals.service.calendar;
 
-import com.harding.meals.dto.calendar.Calendar;
-import com.harding.meals.dto.calendar.CalendarEvent;
+import com.harding.meals.dto.Calendar;
+import com.harding.meals.dto.CalendarEventDto;
 import com.harding.meals.entity.user.ActiveCalendar;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.repository.AccessTokenRepository;
@@ -36,23 +36,22 @@ public class CalendarService {
         List<String> activeCalendarIds = activeCalendarRepository.findByUser(user).stream()
                 .map(ActiveCalendar::getCalendarId).toList();
         return googleCalendarProvider.getCalendars(user).stream().map(calendar ->
-                new Calendar(
-                        calendar.id(),
-                        calendar.name(),
-                        calendar.colour(),
-                        calendar.textColour(),
-                        activeCalendarIds.contains(calendar.id())
-                )
-            ).toList();
+                new Calendar()
+                        .id(calendar.getId())
+                        .name(calendar.getName())
+                        .colour(calendar.getColour())
+                        .textColour(calendar.getTextColour())
+                        .active(activeCalendarIds.contains(calendar.getId()))
+        ).toList();
     }
 
-    public List<CalendarEvent> findAllEvents(AppUser user, LocalDate from, LocalDate to) throws GeneralSecurityException, IOException {
+    public List<CalendarEventDto> findAllEvents(AppUser user, LocalDate from, LocalDate to) throws GeneralSecurityException, IOException {
         List<ActiveCalendar> activeCalendars = activeCalendarRepository.findByUser(user);
 
         List<Calendar> calendars = googleCalendarProvider.getCalendars(user);
 
         List<String> calendarIds = calendars.stream()
-                .map(Calendar::id)
+                .map(Calendar::getId)
                 .toList();
 
         activeCalendarRepository.deleteAll(
@@ -62,7 +61,7 @@ public class CalendarService {
         );
 
         Map<String, String> colourMap = calendars.stream()
-                .collect(Collectors.toMap(Calendar::id, Calendar::colour));
+                .collect(Collectors.toMap(Calendar::getId, Calendar::getColour));
 
         return activeCalendars.stream()
                 .flatMap(activeCalendar ->

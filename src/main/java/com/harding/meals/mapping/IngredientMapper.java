@@ -1,8 +1,9 @@
 package com.harding.meals.mapping;
 
-import com.harding.meals.dto.meal.ingredient.IngredientDto;
+import com.harding.meals.dto.IngredientDto;
 import com.harding.meals.entity.meal.ingredient.Ingredient;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
@@ -11,5 +12,6 @@ public interface IngredientMapper {
 
     IngredientDto toDto(Ingredient ingredient);
 
+    @Mapping(target = "meal", ignore = true)
     Ingredient toEntity(IngredientDto dto);
 }
