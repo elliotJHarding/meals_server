@@ -197,6 +197,33 @@ public class AiService {
         }
     }
 
+    public SuggestIngredientsResponse suggestIngredients(AppUser user, SuggestIngredientsRequest request) {
+        try {
+            log.info("Sending suggest ingredients request for user: {}", user.getEmail());
+            String accessToken = getAccessToken(user);
+
+            SuggestIngredientsResponse response = restClient.post()
+                    .uri("/suggest-ingredients")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .body(request)
+                    .retrieve()
+                    .body(SuggestIngredientsResponse.class);
+
+            if (response == null) {
+                throw new RuntimeException("Failed to suggest ingredients: empty response");
+            }
+
+            log.info("Received {} ingredient suggestions", response.getIngredients().size());
+            return response;
+        } catch (IOException e) {
+            log.error("Failed to get OAuth token for user: {}", user.getEmail(), e);
+            throw new RuntimeException("Failed to get OAuth token for user", e);
+        } catch (Exception e) {
+            log.error("Error in suggestIngredients: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to suggest ingredients", e);
+        }
+    }
+
     public DayMealPlanChatResponse planMealChat(AppUser user, DayMealPlanChatRequest request) {
         try {
             log.info("Sending meal plan chat request for user: {}", user.getEmail());

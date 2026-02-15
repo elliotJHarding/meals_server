@@ -2,6 +2,8 @@ package com.harding.meals.controller;
 
 import com.harding.meals.dto.DayMealPlanChatRequest;
 import com.harding.meals.dto.DayMealPlanChatResponse;
+import com.harding.meals.dto.SuggestIngredientsRequest;
+import com.harding.meals.dto.SuggestIngredientsResponse;
 import com.harding.meals.entity.meal.Meal;
 import com.harding.meals.entity.meal.ingredient.Ingredient;
 import com.harding.meals.entity.meal.ingredient.IngredientMetadata;
@@ -50,6 +52,14 @@ public class AiController {
             @AuthenticationPrincipal AppUser user
     ) {
         return aiService.planMealChat(user, request);
+    }
+
+    @PostMapping("/suggest-ingredients")
+    public SuggestIngredientsResponse suggestIngredients(
+            @RequestBody SuggestIngredientsRequest request,
+            @AuthenticationPrincipal AppUser user
+    ) {
+        return aiService.suggestIngredients(user, request);
     }
 
     // Request body records for simple endpoints

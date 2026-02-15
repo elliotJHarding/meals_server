@@ -9,6 +9,9 @@ import com.harding.meals.repository.AccessTokenRepository;
 import com.harding.meals.repository.AppUserRepository;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,7 +81,18 @@ public class PersistedDataStore implements DataStore<StoredCredential> {
     @Override
     public DataStore<StoredCredential> set(String key, StoredCredential value) {
         AppUser user = appUserRepository.findByEmail(key);
-        tokenRepository.save(new GoogleOauthToken(user, value));
+        GoogleOauthToken token = tokenRepository.findById(key).orElse(null);
+        if (token != null) {
+            token.setAccessToken(value.getAccessToken());
+            token.setRefreshToken(value.getRefreshToken());
+            token.setCreated(OffsetDateTime.now());
+            token.setExpires(OffsetDateTime.ofInstant(
+                    Instant.ofEpochMilli(value.getExpirationTimeMilliseconds()),
+                    ZoneId.systemDefault()));
+        } else {
+            token = new GoogleOauthToken(user, value);
+        }
+        tokenRepository.save(token);
         return this;
     }
 
