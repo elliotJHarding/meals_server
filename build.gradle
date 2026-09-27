@@ -30,7 +30,7 @@ repositories {
 
 dependencies {
     // Internal Dependencies
-    implementation 'com.harding.meals:meals-api:1.0.3-SNAPSHOT'
+    implementation 'com.harding.meals:meals-api:1.0.4'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
