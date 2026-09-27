@@ -9,6 +9,7 @@ import com.harding.meals.dto.TokenResponse;
 import com.harding.meals.entity.user.AppUser;
 import com.harding.meals.mapping.UserMapper;
 import com.harding.meals.service.auth.JwtTokenService;
+import com.harding.meals.service.auth.google.GoogleAuthService;
 import com.harding.meals.service.auth.google.VerifyGoogleJwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @RestController
 @RequestMapping("/auth")
@@ -44,17 +46,20 @@ public class AuthController {
     private final VerifyGoogleJwtService verifyJwtService;
     private final UserMapper userMapper;
     private final JwtTokenService jwtTokenService;
+    private final GoogleAuthService googleAuthService;
 
     public AuthController(
         VerifyGoogleJwtService verifyJwtService,
         UserMapper userMapper,
         AuthenticationManager authenticationManager,
-        JwtTokenService jwtTokenService
+        JwtTokenService jwtTokenService,
+        GoogleAuthService googleAuthService
     ) {
         this.verifyJwtService = verifyJwtService;
         this.userMapper = userMapper;
         this.authenticationManager = authenticationManager;
         this.jwtTokenService = jwtTokenService;
+        this.googleAuthService = googleAuthService;
     }
 
     @GetMapping("/whoami")
@@ -92,6 +97,16 @@ public class AuthController {
         Authentication authentication = authenticationManager.authenticate(token);
 
         AppUser principal = (AppUser) authentication.getPrincipal();
+
+        // Best-effort offline grant from a native serverAuthCode. Identity login must
+        // still succeed if this fails (the user can re-consent later via linkCalendar).
+        if (nonNull(loginRequest.getAuthCode())) {
+            try {
+                googleAuthService.authorizeMobile(loginRequest.getAuthCode(), principal);
+            } catch (Exception e) {
+                log.warn("offline grant via authCode failed for {}: {}", principal.getEmail(), e.getMessage());
+            }
+        }
 
         // Create security context for session
         log.debug("Creating security context");

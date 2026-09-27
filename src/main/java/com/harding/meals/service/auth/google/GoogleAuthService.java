@@ -92,10 +92,14 @@ public class GoogleAuthService {
     }
 
     public TokenResponse getAccessToken(String authorizationCode, String userId) throws IOException {
+        return getAccessToken(authorizationCode, userId, oauthProperties.getRedirectUrl());
+    }
+
+    public TokenResponse getAccessToken(String authorizationCode, String userId, String redirectUri) throws IOException {
         GoogleAuthorizationCodeTokenRequest request =
                 flow
                         .newTokenRequest(URLDecoder.decode(authorizationCode))
-                        .setRedirectUri(oauthProperties.getRedirectUrl())
+                        .setRedirectUri(redirectUri)
                         .setClientAuthentication(new ClientParametersAuthentication(oauthProperties.getGoogleClientId(), oauthProperties.getGoogleClientSecret()))
                         .setGrantType("authorization_code");
 
@@ -104,6 +108,12 @@ public class GoogleAuthService {
 
     public void authorize(String authorizationCode, AppUser user) throws IOException {
         TokenResponse response = getAccessToken(authorizationCode, user.getEmail());
+
+        flow.createAndStoreCredential(response, user.getEmail());
+    }
+
+    public void authorizeMobile(String authorizationCode, AppUser user) throws IOException {
+        TokenResponse response = getAccessToken(authorizationCode, user.getEmail(), "");
 
         flow.createAndStoreCredential(response, user.getEmail());
     }
