@@ -39,6 +39,7 @@ public class WebSecurityConfig {
         http
             .securityMatcher(
                 "/auth/login",
+                "/auth/login/authcode",
                 "/auth/refresh",
                 // Dev-only session login; the controller only exists under the
                 // 'localdev' profile, so this path 404s everywhere else
