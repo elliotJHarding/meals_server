@@ -40,6 +40,9 @@ public class WebSecurityConfig {
             .securityMatcher(
                 "/auth/login",
                 "/auth/refresh",
+                // Dev-only session login; the controller only exists under the
+                // 'localdev' profile, so this path 404s everywhere else
+                "/auth/dev-login",
                 "/units",
                 "/error",
                 "/actuator/health/**"
@@ -96,6 +99,8 @@ public class WebSecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "http://192.168.1.159:5173",
+                "http://localhost:5174",
+                "http://192.168.1.159:5174",
                 "http://grubplanner.co.uk",
                 "https://grubplanner.co.uk"
         ));

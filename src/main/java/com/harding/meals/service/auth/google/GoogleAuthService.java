@@ -118,6 +118,32 @@ public class GoogleAuthService {
         flow.createAndStoreCredential(response, user.getEmail());
     }
 
+    /**
+     * Exchanges an auth-code-flow serverAuthCode for the full Google token
+     * response. An auth code is single-use, so the caller exchanges once and
+     * reuses the returned response for both identity ({@code getIdToken()}) and
+     * the offline credential ({@link #storeCredential}). {@code redirectUri} is
+     * "postmessage" for the GIS popup auth-code flow (web) — it must match the
+     * value the client obtained the code with.
+     */
+    public GoogleTokenResponse exchangeAuthCode(String authorizationCode, String redirectUri) throws IOException {
+        return flow
+                .newTokenRequest(URLDecoder.decode(authorizationCode))
+                .setRedirectUri(redirectUri)
+                .setClientAuthentication(new ClientParametersAuthentication(oauthProperties.getGoogleClientId(), oauthProperties.getGoogleClientSecret()))
+                .setGrantType("authorization_code")
+                .execute();
+    }
+
+    /**
+     * Stores an offline credential from an already-exchanged token response,
+     * keyed by user email. Used by the web auth-code login so the single code
+     * exchange is not repeated.
+     */
+    public void storeCredential(TokenResponse response, String userId) throws IOException {
+        flow.createAndStoreCredential(response, userId);
+    }
+
     public TokenResponse refreshAccessToken(String userEmail, String refreshToken) throws IOException {
         GoogleRefreshTokenRequest request = new GoogleRefreshTokenRequest(
                 httpTransport, flow.getJsonFactory(), refreshToken, oauthProperties.getGoogleClientId(), oauthProperties.getGoogleClientSecret()

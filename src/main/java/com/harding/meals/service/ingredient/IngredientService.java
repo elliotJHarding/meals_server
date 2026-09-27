@@ -57,7 +57,9 @@ public class IngredientService {
             int serves = nonNull(planMeal.getMeal()) &&
                     nonNull(planMeal.getMeal().getServes())?
                     planMeal.getMeal().getServes() : 3;
-            return (ingredient.getAmount() / serves) * planMeal.getRequiredServings();
+            int requiredServings = nonNull(planMeal.getRequiredServings()) ?
+                    planMeal.getRequiredServings() : serves;
+            return (ingredient.getAmount() / serves) * requiredServings;
         };
 
         if (plan.getShoppingListItems() != null && !plan.getShoppingListItems().isEmpty()) {
@@ -65,7 +67,9 @@ public class IngredientService {
         }
 
         // Create shopping list items for all ingredients not already in the list
+        // Free-text-only plan meals have no linked meal and contribute nothing
         List<ShoppingListItem> items = planMeals.stream()
+                .filter(planMeal -> nonNull(planMeal.getMeal()))
                 .filter(planMeal -> planMeal.getMeal().getIngredients() != null)
                 .flatMap(planMeal ->
                         planMeal.getMeal().getIngredients().stream()
@@ -92,9 +96,11 @@ public class IngredientService {
     private boolean isIngredientCheckedByDefault(Ingredient ingredient) {
         Set<Longevity> notCheckedByDefault = Set.of(Longevity.CUPBOARD);
 
-        boolean ingredientHasMetadata = nonNull(ingredient.getMetadata());
+        // Metadata may exist without a longevity yet (e.g. created by receipt
+        // ingestion before storage evidence arrives); Set.of rejects null lookups
+        boolean ingredientHasLongevity = nonNull(ingredient.getMetadata())
+                && nonNull(ingredient.getMetadata().getLongevity());
 
-
-        return !ingredientHasMetadata || !notCheckedByDefault.contains(ingredient.getMetadata().getLongevity());
+        return !ingredientHasLongevity || !notCheckedByDefault.contains(ingredient.getMetadata().getLongevity());
     }
 }

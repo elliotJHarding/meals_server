@@ -253,4 +253,49 @@ public class AiService {
         }
     }
 
+    public ParseReceiptEmailResponse parseReceipt(AppUser user, String receiptText) {
+        ParseReceiptEmailResponse response = restClient.post()
+                .uri("/parse-receipt-email")
+                .header("Authorization", "Bearer " + getAccessTokenOrDevFallback(user))
+                .body(new ParseReceiptEmailRequest(receiptText))
+                .retrieve()
+                .body(ParseReceiptEmailResponse.class);
+
+        if (response == null) {
+            throw new RuntimeException("Failed to parse receipt: empty response");
+        }
+        log.info("Parsed receipt into {} grocery items", response.getItems().size());
+        return response;
+    }
+
+    public LinkWeekResponse linkWeek(AppUser user, LinkWeekRequest request) {
+        LinkWeekResponse response = restClient.post()
+                .uri("/link-week")
+                .header("Authorization", "Bearer " + getAccessTokenOrDevFallback(user))
+                .body(request)
+                .retrieve()
+                .body(LinkWeekResponse.class);
+
+        if (response == null) {
+            throw new RuntimeException("Failed to link week: empty response");
+        }
+        log.info("Linked {} meals, {} items left unlinked",
+                response.getMealLinks().size(), response.getUnlinkedItems().size());
+        return response;
+    }
+
+    /**
+     * Local development has no stored Google credential (the authorize flow
+     * needs the real client secret). The AI service accepts any bearer when
+     * it is configured with a GOOGLE_API_KEY override.
+     */
+    private String getAccessTokenOrDevFallback(AppUser user) {
+        try {
+            return getAccessToken(user);
+        } catch (IOException | IllegalStateException e) {
+            log.warn("No Google credential for {}; relying on AI service GOOGLE_API_KEY fallback", user.getEmail());
+            return "dev-no-user-token";
+        }
+    }
+
 }

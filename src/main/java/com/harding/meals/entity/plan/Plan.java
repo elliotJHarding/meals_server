@@ -78,7 +78,9 @@ public class Plan implements FamilyGroupResource {
     public Plan withFilteredShoppingListItems() {
         if (nonNull(this.shoppingListItems) && nonNull(this.planMeals)) {  // Fix Bug 4: NPE protection
             List<Long> mealIds = this.planMeals.stream()
-                    .map(planMeal -> planMeal.getMeal().getId())
+                    .map(PlanMeal::getMeal)
+                    .filter(Objects::nonNull)
+                    .map(Meal::getId)
                     .toList();
             this.shoppingListItems = this.shoppingListItems.stream()
                     .filter(item ->

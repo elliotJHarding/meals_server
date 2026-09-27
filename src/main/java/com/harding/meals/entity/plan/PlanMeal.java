@@ -21,16 +21,17 @@ public class PlanMeal {
     private Plan plan;
 
     @ManyToOne
-    @JoinColumn(name = "meal_id", nullable = false)
+    @JoinColumn(name = "meal_id")
     private Meal meal;
 
     @ColumnDefault("false")
     private boolean leftovers;
 
-    @Column(nullable = false)
     private Integer requiredServings;
 
     private String note;
+
+    private String freeText;
 
     public PlanMeal() {
     }
@@ -87,5 +88,13 @@ public class PlanMeal {
 
     public void setLeftovers(boolean leftovers) {
         this.leftovers = leftovers;
+    }
+
+    public String getFreeText() {
+        return freeText;
+    }
+
+    public void setFreeText(String freeText) {
+        this.freeText = freeText;
     }
 }

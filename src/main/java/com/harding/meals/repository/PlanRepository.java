@@ -19,7 +19,7 @@ public interface PlanRepository extends PagingAndSortingRepository<Plan, Long>, 
                     select u.familyGroup from AppUser u where u = :user
                 ))
                 and plan.date >= :startDate
-                and plan.date < :endDate
+                and plan.date <= :endDate
             """)
     List<Plan> findByFamilyGroupAndDateBetween(LocalDate startDate, LocalDate endDate, AppUser user);
 

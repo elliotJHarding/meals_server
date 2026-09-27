@@ -140,6 +140,22 @@ class PlanRepositoryIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    void findByFamilyGroupAndDateBetween_includesPlansOnTheEndDate() {
+        // The week view fetches Monday to Sunday inclusive; a plan on the end
+        // date itself must be returned
+        LocalDate start = LocalDate.of(2025, 1, 6);
+        LocalDate end = LocalDate.of(2025, 1, 12);
+
+        Plan sundayPlan = createPlan(end, user1);
+        planRepository.save(sundayPlan);
+
+        List<Plan> results = planRepository.findByFamilyGroupAndDateBetween(start, end, user1);
+
+        assertEquals(1, results.size());
+        assertEquals(end, results.get(0).getDate());
+    }
+
+    @Test
     void findByFamilyGroupAndDateBetween_returnsEmptyForUserWithoutFamily() {
         // Given
         LocalDate start = LocalDate.of(2025, 1, 1);
@@ -202,6 +218,76 @@ class PlanRepositoryIntegrationTest extends BaseIntegrationTest {
         assertEquals(1, savedPlan.getPlanMeals().size());
         assertEquals(4, savedPlan.getPlanMeals().get(0).getRequiredServings());
         assertEquals(testMeal.getId(), savedPlan.getPlanMeals().get(0).getMeal().getId());
+    }
+
+    @Test
+    void savePlanWithFreeTextPlanMeal_persistsWithoutMealOrServings() {
+        // Given - a free-text entry typed by the user, not yet linked to a meal
+        Plan plan = createPlan(LocalDate.of(2025, 1, 10), user1);
+
+        PlanMeal freeTextEntry = new PlanMeal();
+        freeTextEntry.setPlan(plan);
+        freeTextEntry.setFreeText("Pasta bake");
+
+        plan.setPlanMeals(new ArrayList<>(List.of(freeTextEntry)));
+
+        // When
+        Plan savedPlan = planRepository.save(plan);
+
+        // Then
+        PlanMeal retrieved = planRepository.findById(savedPlan.getId()).orElseThrow()
+                .getPlanMeals().get(0);
+        assertEquals("Pasta bake", retrieved.getFreeText());
+        assertNull(retrieved.getMeal());
+        assertNull(retrieved.getRequiredServings());
+    }
+
+    @Test
+    void savePlanWithMultipleFreeTextPlanMeals_allowsMultipleUnlinkedEntries() {
+        // Given - two unlinked entries on the same day must not violate the
+        // (plan_id, meal_id) unique constraint, since both meal ids are null
+        Plan plan = createPlan(LocalDate.of(2025, 1, 10), user1);
+
+        PlanMeal lunch = new PlanMeal();
+        lunch.setPlan(plan);
+        lunch.setFreeText("Soup and rolls");
+
+        PlanMeal dinner = new PlanMeal();
+        dinner.setPlan(plan);
+        dinner.setFreeText("Sausages and mash");
+
+        plan.setPlanMeals(new ArrayList<>(List.of(lunch, dinner)));
+
+        // When
+        Plan savedPlan = planRepository.save(plan);
+
+        // Then
+        assertEquals(2, planRepository.findById(savedPlan.getId()).orElseThrow()
+                .getPlanMeals().size());
+    }
+
+    @Test
+    void freeTextPlanMeal_canBeLinkedToMealLater() {
+        // Given - ingestion links a previously free-text-only entry to a library meal
+        Plan plan = createPlan(LocalDate.of(2025, 1, 10), user1);
+
+        PlanMeal entry = new PlanMeal();
+        entry.setPlan(plan);
+        entry.setFreeText("Test meal please");
+
+        plan.setPlanMeals(new ArrayList<>(List.of(entry)));
+        Plan savedPlan = planRepository.save(plan);
+
+        // When
+        PlanMeal savedEntry = savedPlan.getPlanMeals().get(0);
+        savedEntry.setMeal(testMeal);
+        planRepository.save(savedPlan);
+
+        // Then - both the link and the original text survive
+        PlanMeal retrieved = planRepository.findById(savedPlan.getId()).orElseThrow()
+                .getPlanMeals().get(0);
+        assertEquals(testMeal.getId(), retrieved.getMeal().getId());
+        assertEquals("Test meal please", retrieved.getFreeText());
     }
 
     @Test

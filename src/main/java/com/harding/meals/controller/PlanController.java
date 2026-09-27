@@ -111,8 +111,10 @@ public class PlanController {
         Plan plan = planMapper.toEntity(newPlan);
         plan.getPlanMeals().forEach(planMeal -> {
             planMeal.setPlan(plan);
-            planMeal.setMeal(mealRepository.findById(planMeal.getMeal().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Meal with id %s does not exist".formatted(planMeal.getMeal().getId()))));
+            if (nonNull(planMeal.getMeal())) {
+                planMeal.setMeal(mealRepository.findById(planMeal.getMeal().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Meal with id %s does not exist".formatted(planMeal.getMeal().getId()))));
+            }
         });
 
         plan.setUser(user);

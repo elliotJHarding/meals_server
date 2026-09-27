@@ -1,7 +1,9 @@
 package com.harding.meals.controller;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.harding.meals.config.security.GoogleJwtAuthenticationToken;
 import com.harding.meals.dto.AppUserDto;
+import com.harding.meals.dto.AuthCodeLoginRequest;
 import com.harding.meals.dto.LoginRequest;
 import com.harding.meals.dto.LoginResponse;
 import com.harding.meals.dto.RefreshTokenRequest;
@@ -108,21 +110,68 @@ public class AuthController {
             }
         }
 
-        // Create security context for session
-        log.debug("Creating security context");
+        return finishLogin(authentication, principal, request, response);
+    }
+
+    /**
+     * Web auth-code login. The web client uses the GIS auth-code flow, which
+     * yields a serverAuthCode but no id_token. Identity is derived server-side
+     * from the id_token in the code exchange, and the same exchange's offline
+     * grant (calendar + Gemini scopes) is stored — the code is single-use, so it
+     * is exchanged exactly once. The existing token-based /auth/login is left
+     * untouched, so native is unaffected.
+     */
+    @PostMapping("/login/authcode")
+    public ResponseEntity<?> loginWithAuthCode(
+        @RequestBody AuthCodeLoginRequest loginRequest,
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws GeneralSecurityException, IOException {
+
+        if (isNull(loginRequest.getAuthCode())) {
+            throw new IllegalArgumentException("No authCode provided");
+        }
+
+        // Single exchange (auth codes are single-use). redirect_uri "postmessage"
+        // matches the GIS popup auth-code flow the web client uses.
+        GoogleTokenResponse tokenResponse = googleAuthService.exchangeAuthCode(loginRequest.getAuthCode(), "postmessage");
+
+        String idToken = tokenResponse.getIdToken();
+        if (isNull(idToken)) {
+            throw new IllegalArgumentException("Auth code exchange returned no id_token");
+        }
+
+        // Reuse the existing identity path: verify the id_token exactly as the
+        // token-based login does.
+        Authentication authentication = authenticationManager.authenticate(
+            GoogleJwtAuthenticationToken.unauthenticated(idToken));
+        AppUser principal = (AppUser) authentication.getPrincipal();
+
+        // Store the offline credential from the same exchange (no second exchange).
+        googleAuthService.storeCredential(tokenResponse, principal.getEmail());
+
+        return finishLogin(authentication, principal, request, response);
+    }
+
+    /**
+     * Establishes the session security context and returns the right body for
+     * the client: a JWT {@link LoginResponse} for mobile, or {@link AppUserDto}
+     * for web (whose session is the cookie). Shared by both login entry points
+     * so they cannot drift.
+     */
+    private ResponseEntity<?> finishLogin(
+        Authentication authentication,
+        AppUser principal,
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) {
+        // Create + save the session security context.
         SecurityContext context = securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authentication);
         securityContextHolderStrategy.setContext(context);
-
-        log.debug("Saving security context");
         securityContextRepository.saveContext(context, request, response);
 
-        // Determine client type
-        boolean isMobileClient = isMobileClient(request);
-
-        if (isMobileClient) {
-            // Generate JWT tokens for mobile client
-            log.debug("Generating JWT tokens for mobile client");
+        if (isMobileClient(request)) {
             JwtTokenService.TokenPair tokenPair =
                 jwtTokenService.generateTokenPair(principal, request);
 
@@ -134,11 +183,10 @@ public class AuthController {
                 .tokenType("Bearer");
 
             return ResponseEntity.ok(loginResponse);
-        } else {
-            // Return only user details for web client (session handled by cookie)
-            log.debug("Returning user details for web client");
-            return ResponseEntity.ok(userMapper.toDto(principal.getPublicDetails()));
         }
+
+        // Web client: session handled by cookie, return only user details.
+        return ResponseEntity.ok(userMapper.toDto(principal.getPublicDetails()));
     }
 
     /**
