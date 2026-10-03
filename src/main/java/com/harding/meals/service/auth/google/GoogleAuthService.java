@@ -19,6 +19,7 @@ import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Component
@@ -74,9 +75,7 @@ public class GoogleAuthService {
 
         if (nonNull(credential) && nonNull(credential.getRefreshToken())) {
             TokenResponse response = refreshAccessToken(principal.getEmail(), credential.getRefreshToken());
-            response.setRefreshToken(credential.getRefreshToken());
-            Credential refreshedCredential = flow.createAndStoreCredential(response, principal.getEmail());
-            return refreshedCredential;
+            return storeKeepingRefreshToken(response, principal.getEmail());
         }
 
         return null;
@@ -109,13 +108,13 @@ public class GoogleAuthService {
     public void authorize(String authorizationCode, AppUser user) throws IOException {
         TokenResponse response = getAccessToken(authorizationCode, user.getEmail());
 
-        flow.createAndStoreCredential(response, user.getEmail());
+        storeKeepingRefreshToken(response, user.getEmail());
     }
 
     public void authorizeMobile(String authorizationCode, AppUser user) throws IOException {
         TokenResponse response = getAccessToken(authorizationCode, user.getEmail(), "");
 
-        flow.createAndStoreCredential(response, user.getEmail());
+        storeKeepingRefreshToken(response, user.getEmail());
     }
 
     /**
@@ -141,7 +140,23 @@ public class GoogleAuthService {
      * exchange is not repeated.
      */
     public void storeCredential(TokenResponse response, String userId) throws IOException {
-        flow.createAndStoreCredential(response, userId);
+        storeKeepingRefreshToken(response, userId);
+    }
+
+    /**
+     * Google returns a refresh token only on first consent, and
+     * createAndStoreCredential stores a fresh credential. Without this, every
+     * later login or refresh would overwrite the stored refresh token with null,
+     * and AI calls would fail once the access token expires.
+     */
+    private Credential storeKeepingRefreshToken(TokenResponse response, String userId) throws IOException {
+        if (isNull(response.getRefreshToken())) {
+            Credential stored = flow.loadCredential(userId);
+            if (nonNull(stored)) {
+                response.setRefreshToken(stored.getRefreshToken());
+            }
+        }
+        return flow.createAndStoreCredential(response, userId);
     }
 
     public TokenResponse refreshAccessToken(String userEmail, String refreshToken) throws IOException {
